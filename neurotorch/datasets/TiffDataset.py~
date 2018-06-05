@@ -1,0 +1,15 @@
+from PIL import Image
+import NeuronDataset
+
+
+class TiffDataset(NeuronDataset):
+    def __init__(self, tiff_file, chunk_size=(256, 256, 20)):
+        try:
+            self.image = Image.open(tiff_file)
+
+        except IOError:
+            raise IOError("TIFF file {} could not be opened".format(tiff_file))
+
+        self.array = self.image.load()
+
+        super(self.array, chunk_size)
