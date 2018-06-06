@@ -1,8 +1,10 @@
-import NeuronDataset
+from NeuronDataset import ThreeDimDataset
 import os.path
 import os
 import fnmatch
 import tifffile as tif
+import unittest
+import numpy as np
 
 
 class TiffDataset(ThreeDimDataset):
@@ -29,4 +31,11 @@ class TiffDataset(ThreeDimDataset):
         else:
             raise IOError("{} was not found".format(tiff_file))
 
-        super(self.array, chunk_size)
+        super().__init__(self.array, chunk_size)
+
+
+def test_tiff_dataset():
+    test = TiffDataset("Z21-2000-2200_labels.tif")
+    print(len(test))
+    tif.imsave("test.tif", 255*test[40].astype(np.uint8))
+    print(test[40])
