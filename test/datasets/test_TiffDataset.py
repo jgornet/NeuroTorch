@@ -18,7 +18,7 @@ class TestTiffDataset(unittest.TestCase):
                         "TIFF dataset value does not match correct value")
 
         # Test that TiffDataset can read and write consistent samples
-        tif.imsave("test_write.tif", testDataset[79])
+        tif.imsave("./test/datasets/test_write.tif", testDataset[79])
         self.assertTrue((tif.imread("./test/datasets/test_write.tif")
                          == testDataset[79]).all,
                         "TIFF dataset output does not match written output")
