@@ -4,9 +4,13 @@ import numpy as np
 
 
 class ThreeDimDataset(Dataset):
+    """
+    Creates a three-dimensional volume dataset with the corresponding chunk
+    size.
+    """
     def __init__(self, array, chunk_size):
         self.shape = array.shape
-        self.chunk_size = chunk_size[::-1]
+        self.chunk_size = chunk_size[::-1]  # Reverse index ordering for Numpy
 
         if any([chunk_size > shape for chunk_size, shape
                 in zip(self.chunk_size, self.shape)]):
@@ -33,5 +37,9 @@ class ThreeDimDataset(Dataset):
 
 
 class TwoDimDataset(ThreeDimDataset):
+    """
+    Creates a two-dimensional image dataset with the corresponding chunk
+    size dimensions.
+    """
     def __init__(self, array, chunk_size=(256, 256)):
         super().__init__(array, chunk_size=([*chunk_size, 1]))
