@@ -1,7 +1,4 @@
 from neurotorch.core.Trainer import Trainer
-from neurotorch.visualization.TensorboardWriter import (LossWriter,
-                                                        TrainingLogger)
-from neurotorch.core.Checkpoint import CheckpointWriter
 import argparse
 
 
@@ -11,6 +8,8 @@ def parse_arguments():
     parser.add_argument('INPUTS', help="Input dataset for training")
     parser.add_argument('LABELS', help="Label dataset for training")
     parser.add_argument('-c', '--checkpoint', help="Checkpoint number",
+                        type=int)
+    parser.add_argument('-d', '--gpu', help="GPU number for training",
                         type=int)
 
     return parser.parse_args()
