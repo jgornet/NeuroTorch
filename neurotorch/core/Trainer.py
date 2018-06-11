@@ -5,7 +5,8 @@ import torch.nn as nn
 
 class Trainer(object):
     def __init__(self, net, data_loader, checkpoint=None,
-                 optimizer=None, criterion=None, max_epochs=100000):
+                 optimizer=None, criterion=None, max_epochs=100000,
+                 gpu_device=None):
         self.net = torch.nn.DataParallel(net).cuda()
 
         if checkpoint is not None:
@@ -17,11 +18,22 @@ class Trainer(object):
         if criterion is None:
             criterion = nn.BCEWithLogitsLoss()
 
+        if gpu_device is not None:
+            self.gpu_device = torch.device("cuda:{}".format(gpu_device))
+            self.useGpu = True
+        else:
+            self.gpu_device = torch.device("cpu")
+            self.useGpu = False
+
         self.data_loader = data_loader
 
     def run_epoch(self, sample_batch):
         inputs = sample_batch["input"]
         labels = sample_batch["label"]
+
+        if self.useGpu:
+            inputs.to(self.gpu_device)
+            labels.to(self.gpu_device)
 
         self.optimizer.zero_grad()
 
