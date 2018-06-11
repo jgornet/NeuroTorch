@@ -7,7 +7,10 @@ class Trainer(object):
     def __init__(self, net, data_loader, checkpoint=None,
                  optimizer=None, criterion=None, max_epochs=100000,
                  gpu_device=None):
-        self.net = torch.nn.DataParallel(net).cuda()
+        if gpu_device is not None:
+            self.net = torch.nn.DataParallel(net).cuda()
+        else:
+            self.net = net
 
         if checkpoint is not None:
             self.net.load_state_dict(torch.load(checkpoint))

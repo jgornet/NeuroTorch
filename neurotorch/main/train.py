@@ -1,5 +1,6 @@
 from neurotorch.core.Trainer import Trainer
 import argparse
+import importlib
 
 
 def parse_arguments():
@@ -17,11 +18,14 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
+    net_path = "neurotorch.nets." + args.NET
+    importlib.import_module(net_path)
+
     if args.checkpoint:
-        trainer = Trainer(args.NET, args.DATASET, checkpoint=args.checkpoint)
+        trainer = Trainer(net_path, args.DATASET, checkpoint=args.checkpoint)
 
     else:
-        trainer = Trainer(args.NET, args.DATASET)
+        trainer = Trainer(net_path, args.DATASET)
 
     trainer.start_training()
 
