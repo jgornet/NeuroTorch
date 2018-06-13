@@ -1,8 +1,6 @@
 from torch.utils.data import Dataset
-from neurotorch.datasets.TiffDataset import TiffDataset
 from functools import reduce
 import numpy as np
-import re
 
 
 class ThreeDimDataset(Dataset):
@@ -37,9 +35,11 @@ class ThreeDimDataset(Dataset):
         coordinate = tuple([chunk_size*chunk for chunk_size, chunk
                             in zip(self.chunk_size, chunk_coordinate)])
 
-        return self.array[coordinate[0]:coordinate[0]+self.chunk_size[0],
-                          coordinate[1]:coordinate[1]+self.chunk_size[1],
-                          coordinate[2]:coordinate[2]+self.chunk_size[2]]
+        result = self.array[coordinate[0]:coordinate[0]+self.chunk_size[0],
+                            coordinate[1]:coordinate[1]+self.chunk_size[1],
+                            coordinate[2]:coordinate[2]+self.chunk_size[2]]
+
+        return result.astype(np.int32).reshape(1, *self.chunk_size)
 
     def getDimensions(self):
         return self.dimensions
@@ -55,19 +55,3 @@ class TwoDimDataset(ThreeDimDataset):
     """
     def __init__(self, array, chunk_size=(256, 256)):
         super().__init__(array, chunk_size=([*chunk_size, 1]))
-
-
-class DatasetDelegator(Dataset):
-    def __init__(self, filename):
-        if re.search(r"^.*\.tif{1,2}", filename):
-            self._dataset = TiffDataset(filename)
-        if re.search(r"^*.h(df)5$", filename):
-            self._dataset = TiffDataset(filename)
-        else:
-            raise ValueError("{} could not be read".format(filename))
-
-    def __len__(self):
-        return len(self._dataset)
-
-    def __getitem__(self, idx):
-        return self._dataset[idx]

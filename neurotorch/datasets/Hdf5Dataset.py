@@ -1,5 +1,5 @@
 import h5py
-import NeuronDataset
+from neurotorch.datasets.VolumeDataset import ThreeDimDataset
 
 
 class Hdf5Dataset(ThreeDimDataset):
