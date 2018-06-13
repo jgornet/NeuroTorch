@@ -5,6 +5,7 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from neurotorch.datasets.DatasetBalancer import (DatasetSplitter,
                                                  SupervisedDataset)
+import torch.cuda
 
 
 class Trainer(object):
@@ -27,12 +28,9 @@ class Trainer(object):
         if criterion is None:
             self.criterion = nn.BCEWithLogitsLoss()
 
-        # if gpu_device is not None:
-        #     self.gpu_device = torch.device("cuda:{}".format(gpu_device))
-        #     self.useGpu = True
-        # else:
-        #     self.gpu_device = torch.device("cpu")
-        #     self.useGpu = False
+        if gpu_device is not None:
+            self.gpu_device = gpu_device
+            self.useGpu = True
 
         self.split_dataset = DatasetSplitter(SupervisedDataset(inputs_dataset,
                                                                labels_dataset))
@@ -45,9 +43,7 @@ class Trainer(object):
         inputs = sample_batch["input"]
         labels = sample_batch["label"]
 
-        # if self.useGpu:
-        #     inputs.to(self.gpu_device)
-        #     labels.to(self.gpu_device)
+        print(inputs.torch.cuda.get_device())
 
         self.optimizer.zero_grad()
 
@@ -61,15 +57,16 @@ class Trainer(object):
                 "outputs": outputs, "loss": loss}
 
     def run_training(self):
-        num_epoch = 1
-        while num_epoch <= self.max_epochs:
-            for i, sample_batch in enumerate(self.data_loader):
-                if num_epoch > self.max_epochs:
-                    break;
-                print("Epoch {}/{}".format(num_epoch,
-                                           self.max_epochs))
-                self.run_epoch(sample_batch)
-                num_epoch += 1
+        with torch.cuda.device(self.gpu_device):
+            num_epoch = 1
+            while num_epoch <= self.max_epochs:
+                for i, sample_batch in enumerate(self.data_loader):
+                    if num_epoch > self.max_epochs:
+                        break
+                    print("Epoch {}/{}".format(num_epoch,
+                                               self.max_epochs))
+                    self.run_epoch(sample_batch)
+                    num_epoch += 1
 
 
 class TrainerDecorator(Trainer):
