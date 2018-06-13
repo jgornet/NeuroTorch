@@ -1,2 +1,5 @@
 *~
 .DS_Store
+*tif
+*pyc
+**/__pycache__
