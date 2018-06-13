@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 import numpy as np
 
 
-class DatasetBalancer(object):
+class DatasetSplitter(object):
     """
     Balances a dataset with the given ratio split between the training and
     testing datasets
@@ -33,13 +33,13 @@ class DatasetBalancer(object):
 
     def getTrainDataset(self):
         """
-        Retrieves the training dataset from the DatasetBalancer
+        Retrieves the training dataset from the DatasetSplitter
         """
         return self.train_dataset
 
     def getTestDataset(self):
         """
-        Retrieves the testing dataset from the DatasetBalancer
+        Retrieves the testing dataset from the DatasetSplitter
         """
         return self.test_dataset
 
@@ -59,7 +59,7 @@ class SampledDataset(Dataset):
         return self.dataset[self.samples[idx]]
 
 
-class PairedDataset(Dataset):
+class SupervisedDataset(Dataset):
     def __init__(self, input_dataset, label_dataset):
         if len(input_dataset) != len(label_dataset):
             raise ValueError("Dataset sizes must be equal")
