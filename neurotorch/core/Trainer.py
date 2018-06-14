@@ -14,10 +14,11 @@ class Trainer(object):
                  gpu_device=None):
         self.max_epochs = max_epochs
 
-        if gpu_device is not None:
-            self.net = torch.nn.DataParallel(net).cuda()
-        else:
-            self.net = net
+        self.device = torch.device("cuda:{}".format(gpu_device)
+                                   if gpu_device is not None
+                                   else "cpu")
+
+        self.net = net.to(self.device)
 
         if checkpoint is not None:
             self.net.load_state_dict(torch.load(checkpoint))
@@ -43,7 +44,7 @@ class Trainer(object):
         inputs = sample_batch["input"]
         labels = sample_batch["label"]
 
-        print(inputs.torch.cuda.get_device())
+        inputs, labels = inputs.to(self.device), labels.to(self.device)
 
         self.optimizer.zero_grad()
 
@@ -57,16 +58,15 @@ class Trainer(object):
                 "outputs": outputs, "loss": loss}
 
     def run_training(self):
-        with torch.cuda.device(self.gpu_device):
-            num_epoch = 1
-            while num_epoch <= self.max_epochs:
-                for i, sample_batch in enumerate(self.data_loader):
-                    if num_epoch > self.max_epochs:
-                        break
-                    print("Epoch {}/{}".format(num_epoch,
-                                               self.max_epochs))
-                    self.run_epoch(sample_batch)
-                    num_epoch += 1
+        num_epoch = 1
+        while num_epoch <= self.max_epochs:
+            for i, sample_batch in enumerate(self.data_loader):
+                if num_epoch > self.max_epochs:
+                    break
+                print("Epoch {}/{}".format(num_epoch,
+                                            self.max_epochs))
+                self.run_epoch(sample_batch)
+                num_epoch += 1
 
 
 class TrainerDecorator(Trainer):

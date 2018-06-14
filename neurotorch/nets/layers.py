@@ -42,7 +42,6 @@ class Conv(nn.Module):
             init.constant(self.conv.bias, 0)
 
     def forward(self, x):
-        print(x)
         return self.conv(x)
 
 
