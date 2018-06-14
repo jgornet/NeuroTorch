@@ -258,4 +258,4 @@ class RSUNet(nn.Module):
         return self.outputdeconv(x)
 
 
-NetCollector().add_module(RSUNet, "RSUNet")
+NetCollector().add_module(RSUNet(), "RSUNet")

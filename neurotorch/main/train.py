@@ -1,4 +1,7 @@
 from neurotorch.core.Trainer import Trainer
+from neurotorch.datasets.TiffDataset import TiffDataset
+from neurotorch.nets.NetCollector import NetCollector
+from neurotorch.nets.RSUNet import RSUNet
 import argparse
 import importlib
 
@@ -12,22 +15,35 @@ def parse_arguments():
                         type=int)
     parser.add_argument('-d', '--gpu', help="GPU number for training",
                         type=int)
+    parser.add_argument('-n', '--iterations', help="Max iterations for training",
+                        type=int)
+    
 
     return parser.parse_args()
 
 
 def main():
     args = parse_arguments()
-    net_path = "neurotorch.nets." + args.NET
-    importlib.import_module(net_path)
+
+    net = NetCollector().get_module(args.NET)
+
+    inputs = TiffDataset(args.INPUTS)
+    labels = TiffDataset(args.LABELS)
+
+    kwargs = dict()
 
     if args.checkpoint:
-        trainer = Trainer(net_path, args.DATASET, checkpoint=args.checkpoint)
+        kwargs["checkpoint"] = args.checkpoint
 
-    else:
-        trainer = Trainer(net_path, args.DATASET)
+    if args.iterations:
+        kwargs["max_epochs"] = args.iterations
 
-    trainer.start_training()
+    if args.gpu:
+        kwargs["gpu_device"] = args.gpu
+
+    trainer = Trainer(net, inputs, labels, **kwargs)
+
+    trainer.run_training()
 
 
 if __name__ == '__main__':
