@@ -1,7 +1,8 @@
 from neurotorch.core.Trainer import TrainerDecorator
-import tensorboardX
+import tensorflow as tf
 import os.path
 import logging
+import time
 
 
 class LossWriter(TrainerDecorator):
@@ -10,41 +11,58 @@ class LossWriter(TrainerDecorator):
             raise IOError("{} is not a valid directory".format(logger_dir))
 
         super().__init__(trainer)
-        self.train_writer = tensorboardX.SummaryWriter(logger_dir +
-                                                       "train_log")
-        self.validation_writer = tensorboardX.SummaryWriter(logger_dir +
-                                                            "validation_log")
+        self.train_writer = tf.contrib.summary.SummaryWriter(logger_dir +
+                                                             "train_log")
+        self.validation_writer = tf.contrib.summary.SummaryWriter(logger_dir +
+                                                                  "validation_log")
 
-    def log_loss(self, loss, time, iteration):
-        self.train_writer.add_scalar("Time", time, iteration)
+        self.iteration = 0
+
+    def log_loss(self, loss, duration, iteration):
+        self.train_writer.add_scalar("Time", duration, iteration)
         self.train_writer.add_scalar("Loss", loss, iteration)
 
     def run_epoch(self, sample_batch):
-        iteration = super().run_epoch(sample_batch)
+        start = time.time()
+        loss = super().run_epoch(sample_batch)
+        end = time.time()
 
-        self.log_loss(iteration["loss"], iteration["time"],
-                      iteration["iteration"])
+        duration = start - end
+
+        self.iteration += 1
+
+        self.log_loss(loss, duration, self.iteration)
 
 
 class TrainingLogger(TrainerDecorator):
     def __init__(self, trainer, logger_dir=None):
-        if not os.path.isdir(logger_dir) and logger_dir is not None:
+        if logger_dir is not None and not os.path.isdir(logger_dir):
             raise IOError("{} is not a valid directory".format(logger_dir))
 
         super().__init__(trainer)
 
+        self.logger = logging.getLogger("Trainer")
+        self.logger.setLevel(logging.INFO)
+
         if logger_dir:
-            logging.basicConfig(filename=os.path.join(logger_dir,
-                                                      'training.log'),
-                                level=logging.INFO)
-        else:
-            logging.basicConfig(level=logging.INFO)
+            file_handler = logging.FileHandler(os.path.join(logger_dir,
+                                                            "training.log"))
+            self.logger.addHandler(file_handler)
+
+        console_handler = logging.StreamHandler()
+        self.logger.addHandler(console_handler)
+
+        self.iteration = 0
 
     def run_epoch(self, sample_batch):
-        iteration = super().run_epoch(sample_batch)
+        loss = super().run_epoch(sample_batch)
+        self.iteration += 1
 
-        logging.info("Iteration: {}, Loss: {}".format(iteration["iteration"],
-                                                      iteration["loss"]))
+        self.logger.info("Iteration: {}, Loss: {}".format(self.iteration,
+                                                          loss))
+
+    def run_training(self):
+        super().run_training()
 
 
 class ImageWriter(TrainerDecorator):

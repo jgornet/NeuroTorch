@@ -54,8 +54,7 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
 
-        return {"inputs": inputs, "labels": labels,
-                "outputs": outputs, "loss": loss}
+        return loss
 
     def run_training(self):
         num_epoch = 1
@@ -74,7 +73,15 @@ class TrainerDecorator(Trainer):
         self._trainer = trainer
 
     def run_epoch(self, sample_batch):
-        self._trainer.run_epoch(sample_batch)
+        return self._trainer.run_epoch(sample_batch)
 
     def run_training(self):
-        self._trainer.run_training()
+        num_epoch = 1
+        while num_epoch <= self._trainer.max_epochs:
+            for i, sample_batch in enumerate(self._trainer.data_loader):
+                if num_epoch > self._trainer.max_epochs:
+                    break
+                print("Epoch {}/{}".format(num_epoch,
+                                            self._trainer.max_epochs))
+                self.run_epoch(sample_batch)
+                num_epoch += 1
