@@ -37,9 +37,9 @@ class TestTrainer(unittest.TestCase):
                                                   "sample_volume.tif"))
         labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
                                                   "labels.tif"))
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=2,
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=5,
                           gpu_device=0)
-        trainer = LossWriter(trainer, './tests/')
+        trainer = LossWriter(trainer, './tests/', "test_experiment")
         trainer.run_training()
 
     def test_training_logger(self):
@@ -50,5 +50,5 @@ class TestTrainer(unittest.TestCase):
                                                   "labels.tif"))
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=2,
                           gpu_device=0)
-        trainer = TrainingLogger(trainer)
+        trainer = TrainingLogger(trainer, logger_dir='.')
         trainer.run_training()

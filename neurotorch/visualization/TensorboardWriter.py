@@ -1,20 +1,22 @@
 from neurotorch.core.Trainer import TrainerDecorator
-import tensorflow as tf
-import os.path
+import tensorboardX
+import os
 import logging
 import time
 
 
 class LossWriter(TrainerDecorator):
-    def __init__(self, trainer, logger_dir):
+    def __init__(self, trainer, logger_dir, experiment_name):
         if not os.path.isdir(logger_dir):
             raise IOError("{} is not a valid directory".format(logger_dir))
 
         super().__init__(trainer)
-        self.train_writer = tf.contrib.summary.SummaryWriter(logger_dir +
-                                                             "train_log")
-        self.validation_writer = tf.contrib.summary.SummaryWriter(logger_dir +
-                                                                  "validation_log")
+        experiment_dir = os.path.join(logger_dir, experiment_name)
+        os.mkdir(experiment_dir)
+        self.train_writer = tensorboardX.SummaryWriter(os.path.join(experiment_dir,
+                                                       "train_log"))
+        self.validation_writer = tensorboardX.SummaryWriter(os.path.join(experiment_dir,
+                                                            "validation_log"))
 
         self.iteration = 0
 
