@@ -13,13 +13,17 @@ class CheckpointWriter(TrainerDecorator):
         self.checkpoint_dir = checkpoint_dir
         self.checkpoint_period = checkpoint_period
 
-    def run_epoch(self, sample_batch):
-        iteration = super().__init__(sample_batch)
+        self.iteration = 1
 
-        if iteration["iteration"] % self.checkpoint_period == 0:
-            self.save_checkpoint()
+    def run_epoch(self, sample_batch):
+        iteration = super().run_epoch(sample_batch)
+
+        if self.iteration % self.checkpoint_period == 0:
+            self.save_checkpoint(self.iteration)
+
+        self.iteration += 1
 
     def save_checkpoint(self, iteration):
         checkpoint_filename = os.path.join(self.checkpoint_dir,
                                            "iteration_{}.ckpt".format(iteration))
-        torch.save(self.net.state_dict(), checkpoint_filename)
+        torch.save(self._trainer.net.state_dict(), checkpoint_filename)

@@ -4,7 +4,9 @@ from neurotorch.nets.RSUNet import RSUNet
 from neurotorch.datasets.TiffDataset import TiffDataset
 from neurotorch.visualization.TensorboardWriter import (LossWriter,
                                                         TrainingLogger)
+from neurotorch.core.Checkpoint import CheckpointWriter
 import os.path
+import shutil
 import pytest
 
 IMAGE_PATH = "./tests/images"
@@ -17,7 +19,7 @@ class TestTrainer(unittest.TestCase):
                                                   "sample_volume.tif"))
         labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
                                                   "labels.tif"))
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=2,
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1,
                           gpu_device=0)
         trainer.run_training()
 
@@ -28,16 +30,18 @@ class TestTrainer(unittest.TestCase):
                                                   "sample_volume.tif"))
         labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
                                                   "labels.tif"))
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=2)
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1)
         trainer.run_training()
 
     def test_loss_writer(self):
+        shutil.rmtree('./tests/test_experiment')
+
         net = RSUNet()
         inputs_dataset = TiffDataset(os.path.join(IMAGE_PATH,
                                                   "sample_volume.tif"))
         labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
                                                   "labels.tif"))
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=5,
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1,
                           gpu_device=0)
         trainer = LossWriter(trainer, './tests/', "test_experiment")
         trainer.run_training()
@@ -48,7 +52,24 @@ class TestTrainer(unittest.TestCase):
                                                   "sample_volume.tif"))
         labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
                                                   "labels.tif"))
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=2,
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1,
                           gpu_device=0)
         trainer = TrainingLogger(trainer, logger_dir='.')
+        trainer.run_training()
+
+    def test_checkpoint(self):
+        net = RSUNet()
+        inputs_dataset = TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.tif"))
+        labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "labels.tif"))
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=10,
+                          gpu_device=0)
+        trainer = CheckpointWriter(trainer,
+                                   checkpoint_dir='./tests/checkpoints',
+                                   checkpoint_period=5)
+        trainer.run_training()
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=10,
+                          gpu_device=0,
+                          checkpoint='./tests/checkpoints/iteration_5.ckpt')
         trainer.run_training()
