@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset
 from functools import reduce
 import numpy as np
+import torch 
 
 
 class ThreeDimDataset(Dataset):
@@ -38,8 +39,9 @@ class ThreeDimDataset(Dataset):
         result = self.array[coordinate[0]:coordinate[0]+self.chunk_size[0],
                             coordinate[1]:coordinate[1]+self.chunk_size[1],
                             coordinate[2]:coordinate[2]+self.chunk_size[2]]
+        result = result.reshape(1, *self.chunk_size)
 
-        return result.astype(np.int32).reshape(1, *self.chunk_size)
+        return result
 
     def getDimensions(self):
         return self.dimensions

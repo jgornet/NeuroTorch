@@ -76,7 +76,7 @@ class SupervisedDataset(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        sample = {"input": self.input_dataset[idx],
-                  "label": self.label_dataset[idx]}
+        sample = {"input": self.input_dataset[idx].astype(np.float32),
+                  "label": self.label_dataset[idx].astype(np.float32)}
 
         return sample
