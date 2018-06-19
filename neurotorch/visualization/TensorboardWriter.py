@@ -29,7 +29,7 @@ class LossWriter(TrainerDecorator):
         loss = super().run_epoch(sample_batch)
         end = time.time()
 
-        duration = start - end
+        duration = end - start
 
         self.iteration += 1
 
@@ -57,11 +57,16 @@ class TrainingLogger(TrainerDecorator):
         self.iteration = 0
 
     def run_epoch(self, sample_batch):
+        start = time.time()
         loss = super().run_epoch(sample_batch)
+        end = time.time()
+        duration = end - start
+
         self.iteration += 1
 
-        self.logger.info("Iteration: {}, Loss: {}".format(self.iteration,
-                                                          loss))
+        self.logger.info("Iteration: {}, Loss: {}, Time: {}".format(self.iteration,
+                                                                    loss,
+                                                                    duration))
 
     def run_training(self):
         super().run_training()
