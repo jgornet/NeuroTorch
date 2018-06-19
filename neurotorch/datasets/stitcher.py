@@ -1,11 +1,14 @@
 import numpy as np
 import tifffile as tif
+from neurotorch.datasets.volumedataset import ThreeDimDataset
 
 
 class DatasetStitcher:
-    def stitch_dataset(self, dataset):
+    def stitch_dataset(self, dataset: ThreeDimDataset):
         """
         Stitches a VolumeDataset into a numpy array
+
+        :param dataset: A VolumeDataset to stitch
         """
         array = np.zeros(dataset.dimensions, dtype=dataset.dtype)
         z_size, y_size, x_size = dataset.getChunkSize()
@@ -26,6 +29,9 @@ class TiffStitcher(DatasetStitcher):
     def stitch_dataset(self, dataset, tiff_file):
         """
         Stitches a VolumeDataset and saves it as a TIFF stack
+
+        :param dataset: A VolumeDataset to stitch
+        :param tiff_file: The file path of the TIFF reconstruction
         """
         array = super().stitch_dataset(dataset)
         tif.imsave(tiff_file, array)

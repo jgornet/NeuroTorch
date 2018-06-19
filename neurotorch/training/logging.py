@@ -1,4 +1,4 @@
-from neurotorch.core.Trainer import TrainerDecorator
+from neurotorch.core.trainer import TrainerDecorator
 import tensorboardX
 import os
 import logging
@@ -6,7 +6,17 @@ import time
 
 
 class LossWriter(TrainerDecorator):
+    """
+    Logs the loss at each iteration to a Tensorboard log
+    """
     def __init__(self, trainer, logger_dir, experiment_name):
+        """
+        Initializes the Tensorboard writer
+
+        :param trainer: Trainer object that the class wraps
+        :param logger_dir: Directory to save Tensorboard logs
+        :param experiment_name: The name to mark the experiment
+        """
         if not os.path.isdir(logger_dir):
             raise IOError("{} is not a valid directory".format(logger_dir))
 
@@ -20,11 +30,23 @@ class LossWriter(TrainerDecorator):
 
         self.iteration = 0
 
-    def log_loss(self, loss, duration, iteration):
+    def log_loss(self, loss: float, duration: float, iteration: int):
+        """
+        Writes the loss onto the Tensorboard log
+
+        :param loss: The training loss of the model
+        :param duration: The time elapsed by the current iteration
+        :param iteration: The current iteration of the model
+        """
         self.train_writer.add_scalar("Time", duration, iteration)
         self.train_writer.add_scalar("Loss", loss, iteration)
 
     def run_epoch(self, sample_batch):
+        """
+        Runs an epoch and saves the parameters onto the Tensorboard log
+
+        :param sample_batch: A batch of input/label samples for training
+        """
         start = time.time()
         loss = super().run_epoch(sample_batch)
         end = time.time()
@@ -37,7 +59,16 @@ class LossWriter(TrainerDecorator):
 
 
 class TrainingLogger(TrainerDecorator):
+    """
+    Logs the iteration parameters onto a plain text log file
+    """
     def __init__(self, trainer, logger_dir=None):
+        """
+        Initializes the Python Logger
+
+        :param trainer: Trainer object that the class wraps
+        :param logger_dir: The directory to save logs
+        """
         if logger_dir is not None and not os.path.isdir(logger_dir):
             raise IOError("{} is not a valid directory".format(logger_dir))
 
@@ -57,6 +88,11 @@ class TrainingLogger(TrainerDecorator):
         self.iteration = 0
 
     def run_epoch(self, sample_batch):
+        """
+        Runs an epoch and saves the parameters in a log
+
+        :param sample_batch: A batch of input/label samples for training
+        """
         start = time.time()
         loss = super().run_epoch(sample_batch)
         end = time.time()
@@ -67,9 +103,6 @@ class TrainingLogger(TrainerDecorator):
         self.logger.info("Iteration: {}, Loss: {}, Time: {}".format(self.iteration,
                                                                     loss,
                                                                     duration))
-
-    def run_training(self):
-        super().run_training()
 
 
 class ImageWriter(TrainerDecorator):

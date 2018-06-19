@@ -1,5 +1,5 @@
 import unittest
-from neurotorch.nets.NetCollector import NetCollector
+from neurotorch.nets.netcollector import NetCollector
 
 
 class TestNet(unittest.TestCase):

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from neurotorch.core.Trainer import Trainer
-from neurotorch.datasets.TiffDataset import TiffDataset
-from neurotorch.nets.NetCollector import NetCollector
+from neurotorch.core.trainer import Trainer
+from neurotorch.datasets.volumedataset import TiffDataset
+from neurotorch.nets.netcollector import NetCollector
 from neurotorch.nets.RSUNet import RSUNet
-from neurotorch.visualization.TensorboardWriter import TrainingLogger
+from neurotorch.training.logging import TrainingLogger
 import argparse
 import importlib
 

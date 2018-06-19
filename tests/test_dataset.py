@@ -1,7 +1,7 @@
-from neurotorch.datasets.DatasetBalancer import (DatasetSplitter,
-                                                 SupervisedDataset)
-from neurotorch.datasets.TiffDataset import TiffDataset
-from neurotorch.datasets.DatasetStitcher import TiffStitcher
+from neurotorch.datasets.helperclasses import (DatasetSplitter,
+                                               SupervisedDataset)
+from neurotorch.datasets.volumedataset import TiffDataset
+from neurotorch.datasets.stitcher import TiffStitcher
 import unittest
 import tifffile as tif
 import os.path

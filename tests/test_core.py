@@ -1,10 +1,10 @@
 import unittest
-from neurotorch.core.Trainer import Trainer
+from neurotorch.core.trainer import Trainer
 from neurotorch.nets.RSUNet import RSUNet
-from neurotorch.datasets.TiffDataset import TiffDataset
-from neurotorch.visualization.TensorboardWriter import (LossWriter,
-                                                        TrainingLogger)
-from neurotorch.core.Checkpoint import CheckpointWriter
+from neurotorch.datasets.volumedataset import TiffDataset
+from neurotorch.training.logging import (LossWriter,
+                                         TrainingLogger)
+from neurotorch.training.checkpoint import CheckpointWriter
 import os.path
 import shutil
 import pytest
