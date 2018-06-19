@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 from neurotorch.core.Trainer import Trainer
 from neurotorch.datasets.TiffDataset import TiffDataset
 from neurotorch.nets.NetCollector import NetCollector
 from neurotorch.nets.RSUNet import RSUNet
+from neurotorch.visualization.TensorboardWriter import TrainingLogger
 import argparse
 import importlib
 
@@ -38,10 +41,11 @@ def main():
     if args.iterations:
         kwargs["max_epochs"] = args.iterations
 
-    if args.gpu:
+    if args.gpu is not None:
         kwargs["gpu_device"] = args.gpu
 
     trainer = Trainer(net, inputs, labels, **kwargs)
+    trainer = TrainingLogger(trainer)
 
     trainer.run_training()
 
