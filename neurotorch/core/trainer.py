@@ -84,7 +84,7 @@ class Trainer(object):
                 if num_epoch > self.max_epochs:
                     break
                 print("Epoch {}/{}".format(num_epoch,
-                                            self.max_epochs))
+                                           self.max_epochs))
                 self.run_epoch(sample_batch)
                 num_epoch += 1
 
@@ -106,6 +106,6 @@ class TrainerDecorator(Trainer):
                 if num_epoch > self._trainer.max_epochs:
                     break
                 print("Epoch {}/{}".format(num_epoch,
-                                            self._trainer.max_epochs))
+                                           self._trainer.max_epochs))
                 self.run_epoch(sample_batch)
                 num_epoch += 1
