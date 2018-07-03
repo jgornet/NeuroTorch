@@ -1,7 +1,7 @@
 import unittest
 from neurotorch.core.trainer import Trainer
 from neurotorch.nets.RSUNet import RSUNet
-from neurotorch.datasets.volumedataset import TiffDataset
+from neurotorch.datasets.volumedataset import (TorchDataset, TiffDataset)
 from neurotorch.training.logging import (LossWriter,
                                          TrainingLogger)
 from neurotorch.training.checkpoint import CheckpointWriter
@@ -15,10 +15,10 @@ IMAGE_PATH = "./tests/images"
 class TestTrainer(unittest.TestCase):
     def test_gpu_training(self):
         net = RSUNet()
-        inputs_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.tif"))
-        labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "labels.tif"))
+        inputs_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                               "sample_volume.tif")))
+        labels_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "labels.tif")))
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1,
                           gpu_device=0)
         trainer.run_training()
@@ -26,10 +26,10 @@ class TestTrainer(unittest.TestCase):
     @pytest.mark.skip()
     def test_cpu_training(self):
         net = RSUNet()
-        inputs_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.tif"))
-        labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "labels.tif"))
+        inputs_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.tif")))
+        labels_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "labels.tif")))
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1)
         trainer.run_training()
 
@@ -37,10 +37,10 @@ class TestTrainer(unittest.TestCase):
         shutil.rmtree('./tests/test_experiment')
 
         net = RSUNet()
-        inputs_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.tif"))
-        labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "labels.tif"))
+        inputs_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.tif")))
+        labels_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "labels.tif")))
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1,
                           gpu_device=0)
         trainer = LossWriter(trainer, './tests/', "test_experiment")
@@ -48,10 +48,10 @@ class TestTrainer(unittest.TestCase):
 
     def test_training_logger(self):
         net = RSUNet()
-        inputs_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.tif"))
-        labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "labels.tif"))
+        inputs_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.tif")))
+        labels_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "labels.tif")))
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1,
                           gpu_device=0)
         trainer = TrainingLogger(trainer, logger_dir='.')
@@ -59,10 +59,10 @@ class TestTrainer(unittest.TestCase):
 
     def test_checkpoint(self):
         net = RSUNet()
-        inputs_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.tif"))
-        labels_dataset = TiffDataset(os.path.join(IMAGE_PATH,
-                                                  "labels.tif"))
+        inputs_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.tif")))
+        labels_dataset = TorchDataset(TiffDataset(os.path.join(IMAGE_PATH,
+                                                  "labels.tif")))
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=10,
                           gpu_device=0)
         trainer = CheckpointWriter(trainer,
