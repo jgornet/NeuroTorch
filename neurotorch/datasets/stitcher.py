@@ -1,6 +1,6 @@
 import numpy as np
 import tifffile as tif
-from neurotorch.datasets.volumedataset import ThreeDimDataset
+from neurotorch.datasets.volumedataset import VolumeDataset
 
 
 class DatasetStitcher:
@@ -24,7 +24,7 @@ class DatasetStitcher:
         else:
             self.n_chunk_dim = n_chunk_dim
 
-    def stitch_dataset(self, dataset: ThreeDimDataset):
+    def stitch_dataset(self, dataset: VolumeDataset):
         """
         Stitches a VolumeDataset into a numpy array
 

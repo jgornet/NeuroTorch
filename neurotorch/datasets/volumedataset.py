@@ -11,7 +11,7 @@ from abc import (ABC, abstractmethod)
 
 class Dataset(ABC):
     def __init__(self):
-        super.__init__()
+        super().__init__()
 
     @abstractmethod
     def __len__(self):
@@ -25,7 +25,7 @@ class Dataset(ABC):
 class TorchDataset(_TorchDataset):
     def __init__(self, dataset):
         self.dataset = dataset
-        super.__init__()
+        super().__init__()
 
     def __len__(self):
         return self.dataset.__len__()
