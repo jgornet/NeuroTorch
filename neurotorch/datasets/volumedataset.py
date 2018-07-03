@@ -46,20 +46,30 @@ class VolumeDataset(Dataset):
         :param array: A three-dimensional Numpy array
         :param chunk_size: The subvolume size of each sample
         """
+        self.array = array
         self.dimensions = array.shape
         self.dtype = array.dtype
         self.chunk_size = chunk_size[::-1]  # Reverse index ordering for Numpy
 
-        if any([chunk_size > shape for chunk_size, shape
+        if any([chunk_size > dimensions for chunk_size, dimensions
                 in zip(self.chunk_size, self.dimensions)]):
             raise ValueError("The chunk size {} must be smaller " +
                              "than the volume size {}".format(self.chunk_size,
                                                               self.dimensions))
 
-        self.n_chunks = tuple([int(shape/chunk_size) for shape, chunk_size
+        self.n_chunks = tuple([int(round(dimensions/chunk_size))
+                               for dimensions, chunk_size
                                in zip(self.dimensions, self.chunk_size)])
 
         self.length = reduce(lambda x, y: x*y, self.n_chunks)
+
+        # Pad dataset
+        pad_size = tuple([(0, (n_chunks+1)*chunk_size-dimensions)
+                          for n_chunks, chunk_size, dimensions
+                          in zip(self.n_chunks,
+                                 self.chunk_size,
+                                 self.dimensions)])
+        self.array = np.pad(self.array, pad_width=pad_size, mode="constant")
 
     def __len__(self):
         return self.length
