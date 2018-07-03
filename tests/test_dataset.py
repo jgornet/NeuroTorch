@@ -51,7 +51,7 @@ class TestDataset(unittest.TestCase):
         # Stitch a test TIFF dataset
         testDataset = TiffDataset(os.path.join(IMAGE_PATH,
                                                "sample_volume.tif"))
-        stitcher = TiffStitcher()
+        stitcher = TiffStitcher(testDataset, testDataset.getDimensions())
         stitcher.stitch_dataset(testDataset,
                                 os.path.join(IMAGE_PATH,
                                              "test_stitcher.tif"))
