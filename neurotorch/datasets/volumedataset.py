@@ -1,17 +1,55 @@
-from torch.utils.data import Dataset as _TorchDataset
-from functools import reduce
+from torch.utils.data import Dataset as _Dataset
 import numpy as np
-import os.path
-import os
+from abc import (ABC, abstractmethod)
+from neurotorch.datasets.datatypes import BoundingBox, Vector
 import fnmatch
 import tifffile as tif
+import os
+import os.path
 import h5py
-from abc import (ABC, abstractmethod)
+
+
+class Data:
+    """
+    An encapsulating object for communicating volume data
+    """
+    def __init__(self, array, bounding_box):
+        self._setBoundingBox(bounding_box)
+        self._setArray(array)
+
+    def getBoundingBox(self):
+        return self.bounding_box
+
+    def _setBoundingBox(self, bounding_box):
+        if not isinstance(bounding_box, BoundingBox):
+            raise ValueError("bounding_box must have type BoundingBox")
+
+        self.bounding_box = bounding_box
+
+    def getArray(self):
+        return self.array
+
+    def _setArray(self, array):
+        self.array = array
+
+    def getSize(self):
+        return self.getBoundingBox().getSize()
+
+    def getDimension(self):
+        return self.getBoundingBox().getDimension()
 
 
 class Dataset(ABC):
     def __init__(self):
-        super.__init__()
+        super().__init__()
+
+    @abstractmethod
+    def get(self, *args):
+        pass
+
+    @abstractmethod
+    def set(self, *args):
+        pass
 
     @abstractmethod
     def __len__(self):
@@ -21,96 +59,153 @@ class Dataset(ABC):
     def __getitem__(self, idx):
         pass
 
+    def __iter__(self):
+        return self
 
-class TorchDataset(_TorchDataset):
-    def __init__(self, dataset):
-        self.dataset = dataset
-        super.__init__()
-
-    def __len__(self):
-        return self.dataset.__len__()
-
-    def __getitem__(self, idx):
-        return self.dataset.__getitem__(idx)
+    def __next__(self):
+        if self.index < len(self):
+            result = self.__getitem__(self.index)
+            self.index += 1
+            return result
+        else:
+            self.index = 0
+            raise StopIteration
 
 
-class VolumeDataset(Dataset):
+class Volume(Dataset):
     """
-    Creates a three-dimensional volume dataset with the corresponding chunk
-    size.
+    A dataset containing a 3D Numpy array
     """
-    def __init__(self, array, chunk_size):
-        """
-        Initializes the dataset with a Numpy array and chunk size
+    def __init__(self, array, iteration_size=BoundingBox(Vector(0, 0, 0),
+                                                         Vector(128, 128, 20)),
+                 stride=Vector(64, 64, 10)):
+        if isinstance(array, np.ndarray):
+            self._setArray(array)
+        elif isinstance(array, BoundingBox):
+            self.createArray(array)
+        else:
+            raise ValueError("array must be an ndarray or a BoundingBox")
 
-        :param array: A three-dimensional Numpy array
-        :param chunk_size: The subvolume size of each sample
-        """
+        self.setIteration(iteration_size=iteration_size,
+                          stride=stride)
+        super().__init__()
+
+    def get(self, bounding_box):
+        if bounding_box.isDisjoint(self.getBoundingBox()):
+            raise ValueError("Bounding box must be inside dataset " +
+                             "dimensions instead bounding box is {} while the dataset dimensions are {}".format(bounding_box, self.getBoundingBox()))
+
+        sub_bounding_box = bounding_box.intersect(self.getBoundingBox())
+        array = self.getArray(sub_bounding_box)
+
+        before_pad = bounding_box.getEdges()[0] - sub_bounding_box.getEdges()[0]
+        after_pad = sub_bounding_box.getEdges()[1] - bounding_box.getEdges()[1]
+
+        if before_pad != Vector(0, 0, 0) and after_pad != Vector(0, 0, 0):
+            pad_size = (before_pad.getComponents(),
+                        after_pad.getComponents())
+            array = np.pad(array, pad_size=pad_size, mode="constant")
+
+        return Data(array, bounding_box)
+
+    def set(self, data):
+        bounding_box = data.getBoundingBox()
+        array = data.getArray()
+
+        if not bounding_box.isSubset(self.getBoundingBox()):
+            raise ValueError("The bounding box must be a subset of the "
+                             " volume")
+
+        edge1, edge2 = bounding_box.getEdges()
+        x1, y1, z1 = edge1.getComponents()
+        x2, y2, z2 = edge2.getComponents()
+
+        self.array[z1:z2, y1:y2, x1:x2] = array
+
+    def createArray(self, bounding_box):
+        size = bounding_box.getSize().getComponents()[::-1]
+        volume = np.zeros(size)
+        self._setArray(volume)
+
+    def getArray(self, bounding_box=None):
+        if bounding_box is None:
+            return self.array
+
+        else:
+            if not bounding_box.isSubset(self.getBoundingBox()):
+                raise ValueError("The bounding box must be a subset" +
+                                 " of the volume")
+
+            edge1, edge2 = bounding_box.getEdges()
+            x1, y1, z1 = edge1.getComponents()
+            x2, y2, z2 = edge2.getComponents()
+
+            return self.array[z1:z2, y1:y2, x1:x2]
+
+    def _setArray(self, array):
         self.array = array
-        self.dimensions = array.shape
-        self.dtype = array.dtype
-        self.chunk_size = chunk_size[::-1]  # Reverse index ordering for Numpy
 
-        if any([chunk_size > dimensions for chunk_size, dimensions
-                in zip(self.chunk_size, self.dimensions)]):
-            raise ValueError("The chunk size {} must be smaller " +
-                             "than the volume size {}".format(self.chunk_size,
-                                                              self.dimensions))
+    def getBoundingBox(self):
+        return BoundingBox(Vector(0, 0, 0),
+                           Vector(*self.getArray().shape[::-1]))
 
-        self.n_chunks = tuple([int(round(dimensions/chunk_size))
-                               for dimensions, chunk_size
-                               in zip(self.dimensions, self.chunk_size)])
+    def setIteration(self, iteration_size: BoundingBox, stride: Vector):
+        if not isinstance(iteration_size, BoundingBox):
+            raise ValueError("iteration_size must have type BoundingBox"
+                             + " instead it has type {}".format(type(iteration_size)))
 
-        self.length = reduce(lambda x, y: x*y, self.n_chunks)
+        if not isinstance(stride, Vector):
+            raise ValueError("stride must have type Vector")
 
-        # Pad dataset
-        pad_size = tuple([(0, (n_chunks+1)*chunk_size-dimensions)
-                          for n_chunks, chunk_size, dimensions
-                          in zip(self.n_chunks,
-                                 self.chunk_size,
-                                 self.dimensions)])
-        self.array = np.pad(self.array, pad_width=pad_size, mode="constant")
+        if not iteration_size.isSubset(self.getBoundingBox()):
+            raise ValueError("iteration_size must be smaller than volume size")
+
+        self.setIterationSize(iteration_size)
+        self.setStride(stride)
+
+        def ceil(x):
+            return int(round(x))
+
+        self.element_vec = Vector(*map(lambda L, l, s: ceil((L-l)/s+1),
+                                       self.getBoundingBox().getEdges()[1].getComponents(),
+                                       self.iteration_size.getEdges()[1].getComponents(),
+                                       self.stride.getComponents()))
+
+        self.index = 0
+
+    def setIterationSize(self, iteration_size):
+        self.iteration_size = BoundingBox(Vector(0, 0, 0),
+                                          iteration_size.getSize())
+
+    def setStride(self, stride):
+        self.stride = stride
+
+    def getIterationSize(self):
+        return self.iteration_size
+
+    def getStride(self):
+        return self.stride
 
     def __len__(self):
-        return self.length
+        return self.element_vec[0]*self.element_vec[1]*self.element_vec[2]
 
     def __getitem__(self, idx):
         if idx >= len(self):
+            self.index = 0
             raise StopIteration
 
-        chunk_coordinate = np.unravel_index(idx, dims=self.n_chunks)
-        coordinate = tuple([chunk_size*chunk for chunk_size, chunk
-                            in zip(self.chunk_size, chunk_coordinate)])
+        element_vec = np.unravel_index(idx,
+                                       dims=self.element_vec.getComponents())
 
-        result = self.array[coordinate[0]:coordinate[0]+self.chunk_size[0],
-                            coordinate[1]:coordinate[1]+self.chunk_size[1],
-                            coordinate[2]:coordinate[2]+self.chunk_size[2]]
-        result = result.reshape(1, *self.chunk_size)
+        element_vec = Vector(*element_vec)
+        bounding_box = self.iteration_size+self.stride*element_vec
+        result = self.get(bounding_box)
 
         return result
 
-    def getDimensions(self):
-        """
-        Returns the dimensions of the dataset
 
-        :return: The dimensions of the dataset
-        """
-        return self.dimensions
-
-    def getChunkSize(self):
-        """
-        Returns the dimensions of the sample subvolume
-
-        :return: The dimensions of the sample subvolume
-        """
-        return self.chunk_size
-
-
-class TiffDataset(VolumeDataset):
-    """
-    Creates a dataset from a TIFF file
-    """
-    def __init__(self, tiff_file, chunk_size=(256, 256, 20)):
+class TiffVolume(Volume):
+    def __init__(self, tiff_file, *args, **kwargs):
         """
         Loads a TIFF stack file or a directory of TIFF files and creates a
 corresponding three-dimensional volume dataset
@@ -119,7 +214,7 @@ corresponding three-dimensional volume dataset
         """
         if os.path.isfile(tiff_file):
             try:
-                self.array = tif.imread(tiff_file)
+                array = tif.imread(tiff_file)
 
             except IOError:
                 raise IOError("TIFF file {} could not be " +
@@ -131,19 +226,16 @@ corresponding three-dimensional volume dataset
                                tiff_list)
 
             if tiff_list:
-                self.array = tif.TiffSequence(tiff_list).asarray()
+                array = tif.TiffSequence(tiff_list).asarray()
 
         else:
             raise IOError("{} was not found".format(tiff_file))
 
-        super().__init__(self.array, chunk_size)
+        super().__init__(array, *args, **kwargs)
 
 
-class Hdf5Dataset(VolumeDataset):
-    """
-    Creates a dataset from a HDF5 file
-    """
-    def __init__(self, hdf5_file, dataset, chunk_size=(256, 256, 20)):
+class Hdf5Volume(Volume):
+    def __init__(self, hdf5_file, dataset):
         """
         Loads a HDF5 dataset and creates a corresponding three-dimensional volume dataset
         :param hdf5_file: A HDF5 file path
@@ -151,6 +243,74 @@ class Hdf5Dataset(VolumeDataset):
         :param chunk_size: Dimensions of the sample subvolume
         """
         self.hdf5_file = h5py.File(hdf5_file)
-        self.array = self.hdf5_file[dataset].value
+        array = self.hdf5_file[dataset].value
 
-        super(self.array, chunk_size)
+        super(array)
+
+
+class TorchVolume(_Dataset):
+    def __init__(self, volume):
+        self.setVolume(volume)
+        super().__init__()
+
+    def __len__(self):
+        return len(self.getVolume())
+
+    def __getitem__(self, idx):
+        if isinstance(self.getVolume(), AlignedVolume):
+            data_list = [self.toTorch(data) for data in self.getVolume()[idx]]
+            return data_list
+        else:
+            return self.getVolume()[idx].getArray()
+
+    def toTorch(self, data):
+        torch_data = data.getArray().astype(np.float)
+        torch_data = torch_data.reshape(1, *torch_data.shape)
+        return torch_data
+
+    def setVolume(self, volume):
+        self.volume = volume
+
+    def getVolume(self):
+        return self.volume
+
+
+class AlignedVolume(Volume):
+    def __init__(self, volumes, iteration_size=None, stride=None):
+        if iteration_size is None:
+            iteration_size = volumes[0].getIterationSize()
+        if stride is None:
+            stride = volumes[0].getStride()
+        self.setVolumes(volumes)
+        self.setIteration(iteration_size, stride)
+
+    def getBoundingBox(self):
+        return self.getVolumes()[0].getBoundingBox()
+
+    def setVolumes(self, volumes):
+        self.volumes = volumes
+
+    def addVolume(self, volume):
+        self.volumes.append(volume)
+
+    def getVolumes(self):
+        return self.volumes
+
+    def setIteration(self, iteration_size, stride):
+        for volume in self.getVolumes():
+            volume.setIteration(iteration_size, stride)
+
+    def get(self, bounding_box):
+        result = [volume.get(bounding_box)
+                  for volume in self.getVolumes()]
+        return result
+
+    def set(self, array, bounding_box):
+        pass
+
+    def __len__(self):
+        return len(self.getVolumes()[0])
+
+    def __getitem__(self, idx):
+        result = [volume[idx] for volume in self.getVolumes()]
+        return result
