@@ -13,6 +13,9 @@ pipeline {
                 always {
                     junit 'test-reports/results.xml'
                 }
+		success {
+		    archiveArtifacts 'neurotorch/tests/images/*tif'
+		}
             }
         }
         stage('Deploy for production') {
@@ -21,7 +24,7 @@ pipeline {
 	    }
             steps {
 		input message: 'Pull changes to production? (Click "Proceed to continue")'
-                sh 'git pull development production'
+                sh 'git push development:production'
             }
         }
     }
