@@ -8,9 +8,9 @@ class Augmentation(AlignedVolume):
     def __init__(self, aligned_volume, iteration_size=None, stride=None):
         self.setVolume(aligned_volume)
         if iteration_size is None:
-            iteration_size = self.getVolume().getVolumes()[0].getIterationSize()
+            iteration_size = self.getInputVolume().getIterationSize()
         if stride is None:
-            stride = self.getVolume().getVolumes()[0].getStride()
+            stride = self.getInputVolume().getStride()
         self.setIteration(iteration_size, stride)
 
     def get(self, bounding_box):
@@ -18,7 +18,7 @@ class Augmentation(AlignedVolume):
         return augmented_data
 
     def getBoundingBox(self):
-        return self.getVolume().getVolumes()[0].getBoundingBox()
+        return self.getVolume().getBoundingBox()
 
     def setIteration(self, iteration_size, stride):
         self.setIterationSize(iteration_size)
@@ -33,6 +33,18 @@ class Augmentation(AlignedVolume):
                                        self.stride.getComponents()))
 
         self.index = 0
+
+    def getInputVolume(self):
+        return self.getVolume().getVolumes()[0]
+
+    def getLabelVolume(self):
+        return self.getVolume().getVolumes()[1]
+
+    def getInput(self, bounding_box):
+        return self.getInputVolume().get(bounding_box)
+
+    def getLabel(self, bounding_box):
+        return self.getLabelVolume().get(bounding_box)
 
     def setIterationSize(self, iteration_size):
         self.iteration_size = iteration_size
