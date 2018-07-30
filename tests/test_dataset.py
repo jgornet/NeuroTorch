@@ -31,7 +31,7 @@ class TestDataset(unittest.TestCase):
                                  stride=Vector(128, 128, 20))
 
         # Test that TiffVolume has the correct length
-        self.assertEqual(160, len(testDataset),
+        self.assertEqual(64, len(testDataset),
                          "TIFF dataset size does not match correct size")
 
         # Test that TiffVolume outputs the correct samples
