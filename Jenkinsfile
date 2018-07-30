@@ -14,7 +14,7 @@ pipeline {
                     junit 'test-reports/results.xml'
                 }
 		success {
-		    archiveArtifacts 'neurotorch/tests/images/*tif'
+		    archiveArtifacts 'tests/images/*tif'
 		}
             }
         }
