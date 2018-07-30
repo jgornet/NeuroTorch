@@ -15,37 +15,37 @@ class TestDataset(unittest.TestCase):
         label_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                 "labels.tif"))
         training_dataset = AlignedVolume((input_dataset, label_dataset),
-                                         iteration_size=BoundingBox(Vector(0, 0, 0), Vector(256, 256, 20)),
-                                         stride=Vector(256, 256, 20))
+                                         iteration_size=BoundingBox(Vector(0, 0, 0), Vector(128, 128, 20)),
+                                         stride=Vector(128, 128, 20))
 
         tif.imsave(os.path.join(IMAGE_PATH, "test_input.tif"),
-                   training_dataset[79][0].getArray())
+                   training_dataset[10][0].getArray())
         tif.imsave(os.path.join(IMAGE_PATH, "test_label.tif"),
-                   training_dataset[79][1].getArray()*255)
+                   training_dataset[10][1].getArray()*255)
 
     def test_tiff_dataset(self):
         # Test that TiffVolume opens a TIFF stack
         testDataset = TiffVolume(os.path.join(IMAGE_PATH,
                                               "sample_volume.tif"),
-                                 iteration_size=BoundingBox(Vector(0, 0, 0), Vector(256, 256, 20)),
-                                 stride=Vector(256, 256, 20))
+                                 iteration_size=BoundingBox(Vector(0, 0, 0), Vector(128, 128, 20)),
+                                 stride=Vector(128, 128, 20))
 
         # Test that TiffVolume has the correct length
-        self.assertEqual(80, len(testDataset),
+        self.assertEqual(160, len(testDataset),
                          "TIFF dataset size does not match correct size")
 
         # Test that TiffVolume outputs the correct samples
         self.assertTrue((tif.imread(os.path.join(IMAGE_PATH,
                                                  "test_sample.tif"))
-                         == testDataset[79].getArray()).all,
+                         == testDataset[10].getArray()).all,
                         "TIFF dataset value does not match correct value")
 
         # Test that TiffVolume can read and write consistent samples
         tif.imsave(os.path.join(IMAGE_PATH,
-                                "test_write.tif"), testDataset[79].getArray())
+                                "test_write.tif"), testDataset[10].getArray())
         self.assertTrue((tif.imread(os.path.join(IMAGE_PATH,
                                                  "test_write.tif"))
-                         == testDataset[79].getArray()).all,
+                         == testDataset[10].getArray()).all,
                         "TIFF dataset output does not match written output")
 
     @pytest.mark.skip()
