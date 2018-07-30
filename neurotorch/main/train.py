@@ -3,10 +3,8 @@
 from neurotorch.core.trainer import Trainer
 from neurotorch.datasets.volumedataset import TiffDataset
 from neurotorch.nets.netcollector import NetCollector
-from neurotorch.nets.RSUNet import RSUNet
 from neurotorch.training.logging import TrainingLogger
 import argparse
-import importlib
 
 
 def parse_arguments():
@@ -20,7 +18,6 @@ def parse_arguments():
                         type=int)
     parser.add_argument('-n', '--iterations', help="Max iterations for training",
                         type=int)
-    
 
     return parser.parse_args()
 

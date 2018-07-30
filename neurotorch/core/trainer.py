@@ -3,25 +3,23 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from neurotorch.datasets.helperclasses import (DatasetSplitter,
-                                               SupervisedDataset)
+from neurotorch.datasets.volumedataset import AlignedVolume, TorchVolume
 import torch.cuda
-import time
 
 
 class Trainer(object):
     """
     Trains a PyTorch neural network with a given input and label dataset
     """
-    def __init__(self, net, inputs_dataset, labels_dataset, checkpoint=None,
+    def __init__(self, net, inputs_volume, labels_volume, checkpoint=None,
                  optimizer=None, criterion=None, max_epochs=100000,
                  gpu_device=None):
         """
         Sets up the parameters for training
 
         :param net: A PyTorch neural network
-        :param inputs_dataset: A PyTorch dataset containing inputs
-        :param labels_dataset: A PyTorch dataset containing corresponding labels
+        :param inputs_volume: A PyTorch dataset containing inputs
+        :param labels_volume: A PyTorch dataset containing corresponding labels
         """
         self.max_epochs = max_epochs
 
@@ -44,10 +42,10 @@ class Trainer(object):
             self.gpu_device = gpu_device
             self.useGpu = True
 
-        self.split_dataset = DatasetSplitter(SupervisedDataset(inputs_dataset,
-                                                               labels_dataset))
+        self.volume = TorchVolume(AlignedVolume((inputs_volume,
+                                                 labels_volume)))
 
-        self.data_loader = DataLoader(self.split_dataset.getTrainDataset(),
+        self.data_loader = DataLoader(self.volume,
                                       batch_size=1, shuffle=True,
                                       num_workers=2)
 
@@ -58,8 +56,9 @@ class Trainer(object):
         :param sample_batch: A dictionary containing inputs and labels with the keys 
 "input" and "label", respectively
         """
-        inputs = Variable(sample_batch["input"])
-        labels = Variable(sample_batch["label"])
+        inputs = Variable(sample_batch[0]).float()
+        labels = Variable(sample_batch[1]).float()
+        print(labels)
 
         inputs, labels = inputs.to(self.device), labels.to(self.device)
 

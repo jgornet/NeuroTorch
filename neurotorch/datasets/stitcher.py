@@ -9,11 +9,6 @@ class DatasetStitcher:
         self.dataset = dataset
         self.dimensions = dimensions
 
-        if dtype is None:
-            self.array = np.zeros(dimensions, dtype=dataset.dtype)
-        else:
-            self.array = np.zeros(dimensions, dtype=dtype)
-
         if chunk_size is None:
             self.chunk_size = dataset.chunk_size
         else:
@@ -24,6 +19,14 @@ class DatasetStitcher:
         else:
             self.n_chunk_dim = n_chunk_dim
 
+        array_size = tuple([round(dim/chunk)*chunk_size
+                            for dim, chunk in zip(dimensions, chunk_size)])
+
+        if dtype is None:
+            self.array = np.zeros(array_size, dtype=dataset.dtype)
+        else:
+            self.array = np.zeros(array_size, dtype=dtype)
+
     def stitch_dataset(self, dataset: VolumeDataset):
         """
         Stitches a VolumeDataset into a numpy array
@@ -33,7 +36,8 @@ class DatasetStitcher:
         for index, sample in enumerate(dataset):
             self.add_sample(sample, index)
 
-        return self.array
+        dim = self.dimensions
+        return self.array[0:dim[0], 0:dim[1], 0:dim[2]]
 
     def add_sample(self, sample, index):
         z_size, y_size, x_size = self.chunk_size
