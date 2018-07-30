@@ -16,7 +16,7 @@ class Brightness(Augmentation):
         augmented_raw, augmented_label = self.brightness_augmentation(raw,
                                                                       label)
 
-        return (raw_data, label_data)
+        return (augmented_raw, augmented_label)
 
     def setFrequency(self, frequency):
         self.frequency = frequency
