@@ -1,7 +1,7 @@
 pipeline {
     agent {
 	docker {
-    	    image 'gornet/neurotorch:v1'
+    	    image 'gornet/neurotorch:v2'
 	}
     }
     stages {
