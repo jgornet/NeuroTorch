@@ -42,4 +42,6 @@ class Duplicate(Augmentation):
         duplicate_slices = np.repeat(raw[location, :, :].reshape(1, raw.shape[1], raw.shape[2]), slices, axis=0)
         distorted_raw[location:location+slices, :, :] = duplicate_slices
 
-        return distorted_raw, label
+        augmented_raw_data = Data(distorted_raw, raw_data.getBoundingBox())
+
+        return augmented_raw_data, label_data
