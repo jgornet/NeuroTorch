@@ -14,7 +14,6 @@ IMAGE_PATH = "./tests/images"
 
 
 class TestTrainer(unittest.TestCase):
-    @pytest.mark.skip()
     def test_gpu_training(self):
         net = RSUNet()
         inputs_dataset = TorchVolume(TiffVolume(os.path.join(IMAGE_PATH,
