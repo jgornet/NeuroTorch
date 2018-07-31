@@ -14,6 +14,7 @@ IMAGE_PATH = "./tests/images"
 
 
 class TestTrainer(unittest.TestCase):
+    @pytest.mark.skip()
     def test_gpu_training(self):
         net = RSUNet()
         inputs_dataset = TorchVolume(TiffVolume(os.path.join(IMAGE_PATH,
@@ -24,7 +25,6 @@ class TestTrainer(unittest.TestCase):
                           gpu_device=0)
         trainer.run_training()
 
-    @pytest.mark.skip()
     def test_cpu_training(self):
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -34,6 +34,7 @@ class TestTrainer(unittest.TestCase):
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1)
         trainer.run_training()
 
+    @pytest.mark.skip()
     def test_loss_writer(self):
         if not os.path.isdir('./tests/test_experiment'):
             os.mkdir('tests/test_experiment')
@@ -49,6 +50,7 @@ class TestTrainer(unittest.TestCase):
         trainer = LossWriter(trainer, './tests/', "test_experiment")
         trainer.run_training()
 
+    @pytest.mark.skip()
     def test_training_logger(self):
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -60,6 +62,7 @@ class TestTrainer(unittest.TestCase):
         trainer = TrainingLogger(trainer, logger_dir='.')
         trainer.run_training()
 
+    @pytest.mark.skip()
     def test_checkpoint(self):
         if not os.path.isdir('./tests/checkpoints'):
             os.mkdir('tests/checkpoints')
