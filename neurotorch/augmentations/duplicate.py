@@ -42,4 +42,4 @@ class Duplicate(Augmentation):
         duplicate_slices = np.repeat(raw[location, :, :].reshape(1, raw.shape[1], raw.shape[2]), slices, axis=0)
         distorted_raw[location:location+slices, :, :] = duplicate_slices
 
-    return distorted_raw, label
+        return distorted_raw, label
