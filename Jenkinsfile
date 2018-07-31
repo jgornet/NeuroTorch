@@ -18,14 +18,5 @@ pipeline {
 		}
             }
         }
-        stage('Deploy for production') {
-	    when {
-		branch 'development'
-	    }
-            steps {
-		input message: 'Pull changes to production? (Click "Proceed to continue")'
-		sh 'git push origin development:production'
-            }
-        }
     }
 }
