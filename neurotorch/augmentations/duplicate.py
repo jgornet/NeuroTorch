@@ -33,7 +33,7 @@ class Duplicate(Augmentation):
         return max_slices
 
     def getSlices(self):
-        return random.randrange(self.getMaxSlices)
+        return random.randrange(self.getMaxSlices())
 
     def duplication(self, raw_data, label_data,
                                  location=20, slices=3):
