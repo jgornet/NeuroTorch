@@ -24,7 +24,9 @@ pipeline {
 	    }
             steps {
 		input message: 'Pull changes to production? (Click "Proceed to continue")'
-                sh 'git push development:production'
+                sh 'git checkout production'
+		sh 'git pull . development'
+		sh 'git checkout development'
             }
         }
     }
