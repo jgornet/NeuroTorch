@@ -1,4 +1,5 @@
 from neurotorch.augmentations.brightness import Brightness
+from neurotorch.augmentations.occlusion import Occlusion
 import unittest
 from neurotorch.datasets.volumedataset import TiffVolume, AlignedVolume
 import tifffile as tif
