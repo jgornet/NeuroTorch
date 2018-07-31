@@ -65,7 +65,7 @@ class Occlusion(Augmentation):
 
         augmented_raw_data = Data(filtered_raw, raw_data.getBoundingBox())
 
-        return augmented_raw_data, label
+        return augmented_raw_data, label_data
 
     def dok_volume(self, volume):
         dok = []
