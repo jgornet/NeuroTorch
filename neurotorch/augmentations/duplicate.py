@@ -12,7 +12,7 @@ class Duplicate(Augmentation):
 
     def augment(self, bounding_box):
         slices = self.getSlices()
-        end = bounding_box.getSize().getComponents[0]
+        end = bounding_box.getSize().getComponents()[0]
         location = random.randrange(slices-end)
 
         raw_data = self.getInput(bounding_box)
