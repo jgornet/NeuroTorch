@@ -30,7 +30,7 @@ class Duplicate(Augmentation):
         self.max_slices = max_slices
 
     def getMaxSlices(self):
-        return max_slices
+        return self.max_slices
 
     def getSlices(self):
         return random.randrange(self.getMaxSlices())
