@@ -16,10 +16,10 @@ IMAGE_PATH = "./tests/images"
 class TestTrainer(unittest.TestCase):
     def test_gpu_training(self):
         net = RSUNet()
-        inputs_dataset = TorchVolume(TiffVolume(os.path.join(IMAGE_PATH,
-                                                               "sample_volume.tif")))
-        labels_dataset = TorchVolume(TiffVolume(os.path.join(IMAGE_PATH,
-                                                  "labels.tif")))
+        inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
+                                                 "sample_volume.tif"))
+        labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
+                                                  "labels.tif"))
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1,
                           gpu_device=0)
         trainer.run_training()
