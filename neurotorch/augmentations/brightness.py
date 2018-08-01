@@ -11,15 +11,12 @@ class Brightness(Augmentation):
         super().__init__(volume)
 
     def augment(self, bounding_box):
-        data = self.getVolume().get(bounding_box)
-        raw = data[0].getArray()
-        label = data[1].getArray()
-        augmented_raw, augmented_label = self.brightness_augmentation(raw, label)
+        raw = self.getInput(bounding_box)
+        label = self.getLabel(bounding_box)
+        augmented_raw, augmented_label = self.brightness_augmentation(raw,
+                                                                      label)
 
-        raw_data = Data(augmented_raw, bounding_box)
-        label_data = Data(augmented_label, bounding_box)
-
-        return (raw_data, label_data)
+        return (augmented_raw, augmented_label)
 
     def setFrequency(self, frequency):
         self.frequency = frequency
@@ -27,10 +24,10 @@ class Brightness(Augmentation):
     def setRelativeBrightness(self, relative_brightness):
         self.relative_brightness = relative_brightness
 
-    def brightness_augmentation(self, raw, label, maximum=0.05):
-        augmented_raw = raw
+    def brightness_augmentation(self, raw_data, label_data, maximum=0.05):
+        augmented_raw = raw_data.getArray()
         brightness = random.uniform(0, maximum)
         augmented_raw = augmented_raw + brightness
-        augmented_raw = augmented_raw.astype(np.uint16)
+        augmented_raw_data = Data(augmented_raw, raw_data.getBoundingBox())
 
-        return augmented_raw, label
+        return augmented_raw_data, label_data
