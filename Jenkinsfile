@@ -1,7 +1,8 @@
 pipeline {
     agent {
 	docker {
-    	    image 'gornet/neurotorch:v1'
+    	    image 'gornet/neurotorch:v3'
+	    args '--runtime=nvidia'
 	}
     }
     stages {
@@ -13,15 +14,9 @@ pipeline {
                 always {
                     junit 'test-reports/results.xml'
                 }
-            }
-        }
-        stage('Deploy for production') {
-	    when {
-		branch 'development'
-	    }
-            steps {
-		input message: 'Pull changes to production? (Click "Proceed to continue")'
-                sh 'git pull development production'
+		success {
+		    archiveArtifacts 'tests/images/*tif'
+		}
             }
         }
     }
