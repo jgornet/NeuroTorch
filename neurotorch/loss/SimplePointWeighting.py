@@ -67,7 +67,7 @@ class SimplePointBCEWithLogitsLoss(Module):
         :param neighborhood: A labeled 3x3 Numpy array
         """
         # Skip if the point is background
-        if neighborhood[1, 1, 1] == 0:
+        if (neighborhood[1, 1, 1] == 0).any():
             return False
 
         # Setup neighborhood
