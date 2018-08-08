@@ -10,12 +10,13 @@ class SimplePointBCEWithLogitsLoss(Module):
     """
     def __init__(self):
         super().__init__()
+        self.bce = BCEWithLogitsLoss()
 
     def forward(self, prediction, label):
         weighted_prediction = self.simple_weight(prediction)
         weighted_label = self.simple_weight(label)
 
-        cost = BCEWithLogitsLoss(weighted_prediction, weighted_label)
+        cost = self.bce(weighted_prediction, weighted_label)
 
         return cost
 
