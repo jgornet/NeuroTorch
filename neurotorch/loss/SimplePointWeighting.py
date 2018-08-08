@@ -73,7 +73,7 @@ class SimplePointBCEWithLogitsLoss(Module):
 
         # Setup neighborhood
         result = np.copy(neighborhood)
-        threshold = result[1, 1, 1]
+        center_point_label = result[1, 1, 1]
 
         # Create 18-neighborhood structure
         s = np.zeros((3, 3, 3))
@@ -89,14 +89,14 @@ class SimplePointBCEWithLogitsLoss(Module):
 
         # Calculates the topological number of the cavity
         result[result == 0] = -1
-        labeled_array, num_features = label(result != threshold,
+        labeled_array, num_features = label(result != center_point_label,
                                             structure=s)
 
         if num_features != 1:
             return True
 
         # Calculates the topological number of the component
-        result = (result == threshold)
+        result = (result == center_point_label)
         result[1, 1, 1] = 0
         labeled_array, num_features = label(result,
                                             structure=np.ones((3, 3, 3)))
