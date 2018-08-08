@@ -1,4 +1,5 @@
 import unittest
+from neurotorch.loss.SimplePointWeighting import SimplePointBCEWithLogitsLoss
 from neurotorch.core.trainer import Trainer
 from neurotorch.nets.RSUNet import RSUNet
 from neurotorch.datasets.volumedataset import (TorchVolume, TiffVolume)
@@ -77,4 +78,15 @@ class TestTrainer(unittest.TestCase):
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=10,
                           checkpoint='./tests/checkpoints/iteration_5.ckpt',
                           gpu_device=0)
+        trainer.run_training()
+
+    def test_loss(self):
+        net = RSUNet()
+        inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
+                                                 "sample_volume.tif"))
+        labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
+                                                 "labels.tif"))
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=10,
+                          gpu_device=0,
+                          criterion=SimplePointBCEWithLogitsLoss())
         trainer.run_training()

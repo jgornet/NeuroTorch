@@ -34,9 +34,13 @@ class Trainer(object):
 
         if optimizer is None:
             self.optimizer = optim.Adam(self.net.parameters())
+        else:
+            self.optimizer = optimizer
 
         if criterion is None:
             self.criterion = nn.BCEWithLogitsLoss()
+        else:
+            self.criterion = criterion
 
         if gpu_device is not None:
             self.gpu_device = gpu_device

@@ -10,7 +10,6 @@ class SimplePointBCEWithLogitsLoss(Module):
     """
     def __init__(self):
         super().__init__()
-        self.simple_weight = SimplePointWeight()
 
     def forward(self, prediction, label):
         weighted_prediction = self.simple_weight(prediction)
@@ -20,21 +19,13 @@ class SimplePointBCEWithLogitsLoss(Module):
 
         return cost
 
-
-class SimplePointWeight(Module):
-    """
-    Weights the simple points in a thresheld input
-    """
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, inputs, simple_weight=1, non_simple_weight=10):
-        non_simple_points = self.label_nonsimple_points(inputs)
-        simple_points = inputs.new_ones(inputs.size()).to("cuda:0") - \
+    def simple_weight(self, tensor, simple_weight=1, non_simple_weight=10):
+        non_simple_points = self.label_nonsimple_points(tensor)
+        simple_points = tensor.new_ones(tensor.size()).to("cuda:0") - \
                         non_simple_points
         inputs_weights = non_simple_weight * non_simple_points + \
                          simple_weight * simple_points
-        result = inputs_weights * inputs
+        result = inputs_weights * tensor
         return result
 
     def label_nonsimple_points(self, tensor, threshold=0.5):
@@ -44,6 +35,11 @@ class SimplePointWeight(Module):
         :param tensor: A PyTorch tensor
         :param threshold: The threshold to binarize the tensor
         """
+        try:
+            device = tensor.get_device()
+        except RuntimeError:
+            raise RuntimeError("simple point weighting currently only works" +
+                               " for GPUs")
         array = tensor.to("cpu")
         array = array.numpy()
         array = (array > threshold)
@@ -60,7 +56,7 @@ class SimplePointWeight(Module):
                                                              i:i+3]):
                         result[k, j, i] = 1
 
-        result = torch.from_numpy(result.astype(np.float32)).to("cuda:0")
+        result = torch.from_numpy(result.astype(np.float32)).to(device)
 
         return result
 
