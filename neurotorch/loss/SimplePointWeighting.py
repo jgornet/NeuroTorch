@@ -21,7 +21,7 @@ class SimplePointBCEWithLogitsLoss(Module):
 
     def simple_weight(self, tensor, simple_weight=1, non_simple_weight=10):
         non_simple_points = self.label_nonsimple_points(tensor)
-        simple_points = tensor.new_ones(tensor.size()).to("cuda:0") - \
+        simple_points = tensor.new_ones(tensor.size()).to(tensor.get_device()) - \
                         non_simple_points
         inputs_weights = non_simple_weight * non_simple_points + \
                          simple_weight * simple_points
@@ -41,7 +41,7 @@ class SimplePointBCEWithLogitsLoss(Module):
             raise RuntimeError("simple point weighting currently only works" +
                                " for GPUs")
         array = tensor.to("cpu")
-        array = array.numpy()
+        array = array.data.numpy()
         array = (array > threshold)
         labeled_array, num_features = label(array)
         size = labeled_array.shape
