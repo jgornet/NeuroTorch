@@ -154,7 +154,8 @@ class Volume(Dataset):
                 raise ValueError("The bounding box must be a subset" +
                                  " of the volume")
 
-            edge1, edge2 = bounding_box.getEdges() - self.getBoundingBox().getEdges()[0]
+            centered_bounding_box = bounding_box - self.getBoundingBox().getEdges()[0]
+            edge1, edge2 = centered_bounding_box.getEdges()
             x1, y1, z1 = edge1.getComponents()
             x2, y2, z2 = edge2.getComponents()
 
