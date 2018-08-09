@@ -167,6 +167,9 @@ class BoundingBox:
         result = BoundingBox(edge1 + other, edge2 + other)
         return result
 
+    def __sub__(self, other):
+        return self.__add__(-1*other)
+
     def __eq__(self, other):
         if not isinstance(other, BoundingBox):
             raise ValueError("other must be a BoundingBox")
