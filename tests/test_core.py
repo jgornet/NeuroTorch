@@ -25,6 +25,7 @@ class TestTrainer(unittest.TestCase):
                           gpu_device=0)
         trainer.run_training()
 
+    @pytest.mark.skip()
     def test_cpu_training(self):
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
