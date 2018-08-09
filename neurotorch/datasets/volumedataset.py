@@ -427,7 +427,7 @@ class LargeTiffVolume(LargeVolume):
         self.cache = Volume(array)
         self.cache.setBoundingBox(bounding_box)
 
-    def getCache(self, bounding_box):
+    def getCache(self):
         return self.cache
 
 
