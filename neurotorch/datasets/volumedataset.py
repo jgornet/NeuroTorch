@@ -377,7 +377,7 @@ class LargeTiffVolume(LargeVolume):
         self.tiff_list = tiff_list
         self.setShape()
 
-    def getTiffList(self, tiff_list):
+    def getTiffList(self):
         return self.tiff_list
 
     def setShape(self):
