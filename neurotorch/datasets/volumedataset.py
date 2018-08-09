@@ -418,11 +418,15 @@ class LargeTiffVolume(LargeVolume):
             edge2 = edge1 + Vector(0, 0, 100)
             cache_bbox = BoundingBox(edge1, edge2)
             cache_bbox = cache_bbox.intersect(self.getBoundingBox())
+            _bounding_box = cache_bbox
+        else:
+            _bounding_box = bounding_box
 
-        if not bounding_box.isSubset(self.getBoundingBox()):
+        if not _bounding_box.isSubset(self.getBoundingBox()):
             raise ValueError("cache bounding box must be a subset of " +
                              "volume bounding box")
-        edge1, edge2 = bounding_box.getEdges()
+
+        edge1, edge2 = _bounding_box.getEdges()
         x1, y1, z1 = edge1
         x2, y2, z2 = edge2
 
@@ -432,7 +436,7 @@ class LargeTiffVolume(LargeVolume):
         array = np.concatenate(array)
 
         self.cache = Volume(array)
-        self.cache.setBoundingBox(bounding_box)
+        self.cache.setBoundingBox(_bounding_box)
 
     def getCache(self):
         return self.cache
