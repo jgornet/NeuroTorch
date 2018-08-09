@@ -409,7 +409,7 @@ class LargeTiffVolume(LargeVolume):
             cache_bbox = cache_bbox.intersect(self.getBoundingBox())
             self.setCache(self, cache_bbox)
 
-        return self.getCache(bounding_box)
+        return self.getCache().get(bounding_box)
 
     def setCache(self, bounding_box):
         if not bounding_box.isSubset(self.getBoundingBox()):
@@ -428,7 +428,7 @@ class LargeTiffVolume(LargeVolume):
         self.cache.setBoundingBox(bounding_box)
 
     def getCache(self, bounding_box):
-        return self.cache.get(bounding_box)
+        return self.cache
 
 
 class Hdf5Volume(Volume):
