@@ -1,4 +1,5 @@
-from neurotorch.datasets.volumedataset import TiffVolume, AlignedVolume
+from neurotorch.datasets.volumedataset import (LargeTiffVolume,
+                                               TiffVolume, AlignedVolume)
 import unittest
 import tifffile as tif
 import os.path
@@ -57,3 +58,16 @@ class TestDataset(unittest.TestCase):
         stitcher.stitch_dataset(testDataset,
                                 os.path.join(IMAGE_PATH,
                                              "test_stitcher.tif"))
+
+    def test_large_dataset(self):
+        # Test that TiffVolume opens a TIFF stack
+        testDataset = LargeTiffVolume(os.path.join(IMAGE_PATH,
+                                                   "test_large_volume"),
+                                      iteration_size=BoundingBox(Vector(0, 0, 0),
+                                                                 Vector(128, 128, 20)),
+                                      stride=Vector(128, 128, 20))
+
+        # Test that TiffVolume can read and write consistent samples
+        tif.imsave(os.path.join(IMAGE_PATH,
+                                "test_large_write.tif"),
+                   testDataset[3].getArray())
