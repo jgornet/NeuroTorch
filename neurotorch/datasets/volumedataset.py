@@ -401,7 +401,7 @@ class LargeTiffVolume(LargeVolume):
             raise ValueError("The bounding box must be a subset" +
                              " of the volume")
 
-        if not bounding_box.isSubset(self.getCacheBoundingBox()):
+        if not bounding_box.isSubset(self.getCache().getBoundingBox()):
             edge1, edge2 = bounding_box.getEdges()
             x_len, y_len, z_len = self.getShape()
             cache_bbox = BoundingBox(Vector(0, 0, edge1[2]-50),
