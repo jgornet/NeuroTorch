@@ -168,7 +168,7 @@ class BoundingBox:
         return result
 
     def __sub__(self, other):
-        return self.__add__(-1*other)
+        return self.__add__(other*-1)
 
     def __eq__(self, other):
         if not isinstance(other, BoundingBox):
