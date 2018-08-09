@@ -417,8 +417,10 @@ class LargeTiffVolume(LargeVolume):
     def setCache(self, bounding_box=None):
         if bounding_box is None:
             edge1, edge2 = self.getBoundingBox().getEdges()
-            edge2 = edge1 + Vector(0, 0, 100)
-            cache_bbox = BoundingBox(edge1, edge2)
+            x1, y1, z1 = edge1
+            x2, y2, z2 = edge2
+            cache_bbox = BoundingBox(Vector(x1, y1, z1),
+                                     Vector(x2, y2, z1+100))
             cache_bbox = cache_bbox.intersect(self.getBoundingBox())
             _bounding_box = cache_bbox
         else:
