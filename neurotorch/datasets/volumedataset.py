@@ -371,6 +371,8 @@ class LargeTiffVolume(LargeVolume):
         tiff_list = os.listdir(tiff_dir)
         tiff_list = filter(lambda f: fnmatch.fnmatch(f, '*.tif'), tiff_list)
 
+        self._setTiffList(tiff_list)
+
     def _setTiffList(self, tiff_list):
         self.tiff_list = tiff_list
         self.setShape()
