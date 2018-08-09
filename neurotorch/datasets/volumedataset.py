@@ -411,8 +411,6 @@ class LargeTiffVolume(LargeVolume):
             cache_bbox = cache_bbox.intersect(self.getBoundingBox())
             self.setCache(self, cache_bbox)
 
-        print(self.getCache().get(bounding_box).getArray())
-
         return self.getCache().get(bounding_box).getArray()
 
     def setCache(self, bounding_box=None):
@@ -440,8 +438,6 @@ class LargeTiffVolume(LargeVolume):
         array = list(map(lambda s: s.reshape(1, *s.shape),
                          array))
         array = np.concatenate(array)
-
-        print("Cache shape: {}".format(array.shape))
 
         self.cache = Volume(array)
         self.cache.setBoundingBox(_bounding_box)
