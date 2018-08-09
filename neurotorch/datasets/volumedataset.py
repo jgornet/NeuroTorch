@@ -342,8 +342,9 @@ class LargeVolume(Dataset):
 
 
 class LargeTiffVolume(LargeVolume):
-    def __init__(self, tiff_dir, *args):
+    def __init__(self, tiff_dir, *args, **kwargs):
         self.setDirectory(tiff_dir)
+        super().__init__(*args, **kwargs)
 
     def get(self, bounding_box):
         if bounding_box.isDisjoint(self.getBoundingBox()):
