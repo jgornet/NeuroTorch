@@ -70,4 +70,4 @@ class TestDataset(unittest.TestCase):
         # Test that TiffVolume can read and write consistent samples
         tif.imsave(os.path.join(IMAGE_PATH,
                                 "test_large_write.tif"),
-                   testDataset[3].getArray())
+                   testDataset[0].getArray())
