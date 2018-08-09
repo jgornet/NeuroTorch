@@ -369,7 +369,8 @@ class LargeTiffVolume(LargeVolume):
             raise ValueError("tiff_dir must be a valid directory")
 
         tiff_list = os.listdir(tiff_dir)
-        tiff_list = filter(lambda f: fnmatch.fnmatch(f, '*.tif'), tiff_list)
+        tiff_list = list(filter(lambda f: fnmatch.fnmatch(f, '*.tif'),
+                                tiff_list))
 
         self._setTiffList(tiff_list)
 
