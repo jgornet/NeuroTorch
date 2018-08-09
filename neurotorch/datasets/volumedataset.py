@@ -430,9 +430,10 @@ class LargeTiffVolume(LargeVolume):
         x1, y1, z1 = edge1
         x2, y2, z2 = edge2
 
-        array = (tif.imread(tiff_file)[y1:y2, x1:x2]
-                 for tiff_file in self.getTiffList()[z1:z2])
-        array = array.reshape(1, *array.shape)
+        array = [tif.imread(tiff_file)[y1:y2, x1:x2]
+                 for tiff_file in self.getTiffList()[z1:z2]]
+        array = list(map(lambda s: s.reshape(1, *s.shape),
+                         array))
         array = np.concatenate(array)
 
         self.cache = Volume(array)
