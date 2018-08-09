@@ -374,6 +374,7 @@ class LargeTiffVolume(LargeVolume):
                            tiff_list)
         tiff_list = list(map(lambda f: os.path.join(tiff_dir, f),
                              tiff_list))
+        tiff_list = tiff_list.sort()
 
         self._setTiffList(tiff_list)
 
