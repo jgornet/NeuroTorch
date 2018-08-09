@@ -344,6 +344,7 @@ class LargeVolume(Dataset):
 class LargeTiffVolume(LargeVolume):
     def __init__(self, tiff_dir, *args, **kwargs):
         self.setDirectory(tiff_dir)
+        self.setCache()
         super().__init__(*args, **kwargs)
 
     def get(self, bounding_box):
@@ -411,7 +412,13 @@ class LargeTiffVolume(LargeVolume):
 
         return self.getCache().get(bounding_box)
 
-    def setCache(self, bounding_box):
+    def setCache(self, bounding_box=None):
+        if bounding_box is None:
+            edge1, edge2 = self.getBoundingBox().getEdges()
+            edge2 = edge1 + Vector(0, 0, 100)
+            cache_bbox = BoundingBox(edge1, edge2)
+            cache_bbox = cache_bbox.intersect(self.getBoundingBox())
+
         if not bounding_box.isSubset(self.getBoundingBox()):
             raise ValueError("cache bounding box must be a subset of " +
                              "volume bounding box")
