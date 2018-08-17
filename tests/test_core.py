@@ -2,7 +2,7 @@ import unittest
 from neurotorch.loss.SimplePointWeighting import SimplePointBCEWithLogitsLoss
 from neurotorch.core.trainer import Trainer
 from neurotorch.nets.RSUNet import RSUNet
-from neurotorch.datasets.volumedataset import (TorchVolume, TiffVolume)
+from neurotorch.datasets.dataset import TiffVolume
 from neurotorch.training.logging import (LossWriter,
                                          TrainingLogger)
 from neurotorch.training.checkpoint import CheckpointWriter

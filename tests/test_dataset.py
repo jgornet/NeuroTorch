@@ -1,5 +1,5 @@
-from neurotorch.datasets.volumedataset import (LargeTiffVolume,
-                                               TiffVolume, AlignedVolume)
+from neurotorch.datasets.dataset import (LargeTiffVolume,
+                                         TiffVolume, AlignedVolume)
 import unittest
 import tifffile as tif
 import os.path
