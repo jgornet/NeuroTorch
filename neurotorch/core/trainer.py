@@ -3,7 +3,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from neurotorch.datasets.volumedataset import AlignedVolume, TorchVolume
+from neurotorch.datasets.dataset import AlignedVolume, TorchVolume
 import torch.cuda
 
 

@@ -1,4 +1,4 @@
-from neurotorch.datasets.volumedataset import AlignedVolume
+from neurotorch.datasets.dataset import AlignedVolume
 from neurotorch.datasets.datatypes import Vector
 from abc import abstractmethod
 import numpy as np
