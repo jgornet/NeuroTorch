@@ -67,7 +67,8 @@ class TestDataset(unittest.TestCase):
                    .getArray()
                    .astype(np.uint16))
 
-        self.assertTrue((inputDataset[20] == outputDataset[20]).all(),
+        self.assertTrue((inputDataset[20].getArray()
+                         == outputDataset[20].getArray()).all(),
                         "TIFF stitching output does not match input volume")
 
     def test_large_dataset(self):
