@@ -115,7 +115,7 @@ class BoundingBox:
         return chunk_size
 
     def getNumpyDim(self):
-        return self.getSize()[::-1]
+        return self.getSize().getComponents()[::-1]
 
     def isDisjoint(self, other):
         if not isinstance(other, BoundingBox):
