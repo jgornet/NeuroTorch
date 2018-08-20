@@ -114,6 +114,9 @@ class BoundingBox:
 
         return chunk_size
 
+    def getNumpyDim(self):
+        return self.getSize()[::-1]
+
     def isDisjoint(self, other):
         if not isinstance(other, BoundingBox):
             raise ValueError("other must be a vector instead other is "

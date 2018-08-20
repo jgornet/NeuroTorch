@@ -48,6 +48,15 @@ class Data:
         return Data(self.getArray() + other.getArray(),
                     self.getBoundingBox())
 
+    def __mul__(self, other):
+        if not isinstance(other, Data):
+            raise ValueError("other must have type Data")
+        if self.getBoundingBox() != other.getBoundingBox():
+            raise ValueError("other must have the same bounding box")
+
+        return Data(self.getArray() * other.getArray(),
+                    self.getBoundingBox())
+
 
 class Dataset(ABC):
     def __init__(self):
@@ -134,16 +143,16 @@ class Volume(Dataset):
 
         self.array[z1:z2, y1:y2, x1:x2] = array
 
-    def add(self, data):
+    def blend(self, data, blend_func=None):
+        if blend_func is None:
+            blend_func = np.ones(data.getBoundingBox().getNumpyDim()) * 0.5
+
         result = self.get(data.getBoundingBox())
         result += data
 
-        self.set(result)
+        result *= blend_func
 
-    def createArray(self, bounding_box):
-        size = bounding_box.getSize().getComponents()[::-1]
-        volume = np.zeros(size)
-        self._setArray(volume)
+        self.set(result)
 
     def getArray(self, bounding_box=None):
         if bounding_box is None:
@@ -227,13 +236,6 @@ class Volume(Dataset):
         result = self.get(bounding_box)
 
         return result
-
-    def divideby(self, other):
-        if not isinstance(other, Number):
-            raise ValueError("other must be a number")
-
-        result = self.getArray()/other
-        self.__setArray(result)
 
 
 class TiffVolume(Volume):
