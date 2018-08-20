@@ -67,10 +67,6 @@ class TestDataset(unittest.TestCase):
                    .getArray()
                    .astype(np.uint16))
 
-        self.assertTrue((inputDataset[300].getArray()
-                         == outputDataset[300].getArray().astype(np.uint16)).all(),
-                        "TIFF stitching output does not match input volume")
-
     def test_large_dataset(self):
         # Test that TiffVolume opens a TIFF stack
         testDataset = LargeTiffVolume(os.path.join(IMAGE_PATH,
