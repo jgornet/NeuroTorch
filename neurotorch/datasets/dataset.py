@@ -150,7 +150,7 @@ class Volume(Dataset):
         result = self.get(data.getBoundingBox())
         result += data
 
-        result *= blend_func
+        result *= Data(blend_func, data.getBoundingBox())
 
         self.set(result)
 
