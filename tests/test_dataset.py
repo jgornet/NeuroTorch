@@ -62,7 +62,10 @@ class TestDataset(unittest.TestCase):
             outputDataset.blend(data)
 
         tif.imsave(os.path.join(IMAGE_PATH,
-                                "test_stitch.tif"), outputDataset.getArray())
+                                "test_stitch.tif"),
+                   outputDataset
+                   .getArray()
+                   .astype(np.uint16))
 
     def test_large_dataset(self):
         # Test that TiffVolume opens a TIFF stack
