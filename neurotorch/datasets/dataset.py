@@ -145,12 +145,10 @@ class Volume(Dataset):
 
     def blend(self, data, blend_func=None):
         if blend_func is None:
-            blend_func = np.ones(data.getBoundingBox().getNumpyDim()) * 0.5
+            blend_func = np.ones(data.getBoundingBox().getNumpyDim()) * 0.125
 
         result = self.get(data.getBoundingBox())
-        result += data
-
-        result *= Data(blend_func, data.getBoundingBox())
+        result += data * Data(blend_func, data.getBoundingBox())
 
         self.set(result)
 
