@@ -5,6 +5,7 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from neurotorch.datasets.dataset import AlignedVolume, TorchVolume
 import torch.cuda
+import numpy as np
 
 
 class Trainer(object):
@@ -60,8 +61,8 @@ class Trainer(object):
         :param sample_batch: A dictionary containing inputs and labels with the keys 
 "input" and "label", respectively
         """
-        inputs = Variable(sample_batch[0]).float()
-        labels = Variable(sample_batch[1]).float()
+        inputs = Variable(np.concatenate(sample_batch[0])).float()
+        labels = Variable(np.concatenate(sample_batch[1])).float()
 
         inputs, labels = inputs.to(self.device), labels.to(self.device)
 
@@ -69,8 +70,7 @@ class Trainer(object):
 
         outputs = self.net(inputs)
 
-        loss = self.criterion(*outputs,
-                              labels)
+        loss = self.criterion(outputs, labels)
         loss.backward()
         self.optimizer.step()
 
