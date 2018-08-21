@@ -2,7 +2,7 @@ pipeline {
     agent {
 	docker {
     	    image 'gornet/neurotorch:v3'
-	    args '--runtime=nvidia'
+	    args '--runtime=nvidia --shm-size 32G'
 	}
     }
     stages {
