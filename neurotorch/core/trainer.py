@@ -70,7 +70,7 @@ class Trainer(object):
 
         outputs = self.net(inputs)
 
-        loss = self.criterion(outputs, labels)
+        loss = self.criterion(torch.cat(outputs), labels)
         loss.backward()
         self.optimizer.step()
 
