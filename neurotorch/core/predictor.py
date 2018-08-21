@@ -52,8 +52,11 @@ class Predictor(object):
         inputs = Variable(arrays).float()
 
         outputs = self.getNet()(inputs)
-        data = self.toData(outputs, bounding_boxes)
-        map(output_volume.blend, data)
+        data_list = self.toData(outputs, bounding_boxes)
+        for data in data_list:
+            output_volume.blend(data)
+            if (data.getArray() == 0.0).any():
+                print(data.getArray())
 
     def toArray(self, data):
         torch_data = data.getArray().astype(np.float)
