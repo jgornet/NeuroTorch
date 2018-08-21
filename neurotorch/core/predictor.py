@@ -57,7 +57,7 @@ class Predictor(object):
 
     def toTorch(self, batch):
         bounding_boxes = [data.getBoundingBox() for data in batch]
-        arrays = [self.toArray(data.getArray()) for data in batch]
+        arrays = [self.toArray(data) for data in batch]
         arrays = np.concatenate(arrays, axis=0)
 
         return bounding_boxes, arrays
