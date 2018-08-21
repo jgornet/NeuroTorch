@@ -61,13 +61,13 @@ class Predictor(object):
     def toArray(self, data):
         torch_data = data.getArray().astype(np.float)
         torch_data = torch_data.reshape(1, 1, *torch_data.shape)
-        torch_data = torch_data.to(self.device)
         return torch_data
 
     def toTorch(self, batch):
         bounding_boxes = [data.getBoundingBox() for data in batch]
         arrays = [self.toArray(data) for data in batch]
         arrays = torch.from_numpy(np.concatenate(arrays, axis=0))
+        arrays = arrays.to(self.device)
 
         return bounding_boxes, arrays
 
