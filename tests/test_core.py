@@ -122,6 +122,6 @@ class TestTrainer(unittest.TestCase):
                                         .getNumpyDim()))
         predictor.run(inputs_dataset, output_volume, batch_size=8)
 
-        tif.imsave(os.path.join(IMAGE_PATH,
-                                "test_prediction.tif"),
-                   output_volume.getArray().astype(np.float32))
+        np.save(os.path.join(IMAGE_PATH,
+                             "test_prediction.tif"),
+                output_volume.getArray())
