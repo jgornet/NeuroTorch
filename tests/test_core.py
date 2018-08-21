@@ -109,8 +109,6 @@ class TestTrainer(unittest.TestCase):
         trainer = CheckpointWriter(trainer,
                                    checkpoint_dir='./tests/checkpoints',
                                    checkpoint_period=100)
-        trainer = TrainingLogger(trainer, logger_dir='.')
-        trainer = LossWriter(trainer, './tests/', "test_prediction")
 
         trainer.run_training()
 
