@@ -64,9 +64,6 @@ class Trainer(object):
         inputs = Variable(sample_batch[0]).float()
         labels = Variable(sample_batch[1]).float()
 
-        # Debugging
-        print("Training size: {}".format(inputs.size()))
-
         inputs, labels = inputs.to(self.device), labels.to(self.device)
 
         self.optimizer.zero_grad()

@@ -51,9 +51,6 @@ class Predictor(object):
         bounding_boxes, arrays = self.toTorch(batch)
         inputs = Variable(arrays).float()
 
-        # Debugging
-        print("Prediction size: {}".format(inputs.size()))
-
         outputs = self.getNet()(inputs)
         data = self.toData(outputs, bounding_boxes)
         map(output_volume.blend, data)
