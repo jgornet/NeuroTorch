@@ -51,8 +51,8 @@ class Trainer(object):
                                                  labels_volume)))
 
         self.data_loader = DataLoader(self.volume,
-                                      batch_size=9, shuffle=True,
-                                      num_workers=1)
+                                      batch_size=8, shuffle=True,
+                                      num_workers=4)
 
     def run_epoch(self, sample_batch):
         """
