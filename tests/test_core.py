@@ -105,7 +105,7 @@ class TestTrainer(unittest.TestCase):
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                  "labels.tif"))
         trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=100,
-                          gpu_device=0, batch_size=5)
+                          gpu_device=0)
         trainer = CheckpointWriter(trainer,
                                    checkpoint_dir='./tests/checkpoints',
                                    checkpoint_period=100)
