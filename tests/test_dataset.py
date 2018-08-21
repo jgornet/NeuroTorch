@@ -63,7 +63,7 @@ class TestDataset(unittest.TestCase):
 
         tif.imsave(os.path.join(IMAGE_PATH,
                                 "test_stitch.tif"),
-                   outputDataset[20]
+                   outputDataset[300]
                    .getArray()
                    .astype(np.uint16))
 
