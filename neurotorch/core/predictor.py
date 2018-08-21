@@ -28,7 +28,7 @@ class Predictor(object):
         batch = []
         for i in range(self.getBatchSize()):
             try:
-                batch.append(input_volume.next())
+                batch.append(next(input_volume))
             except StopIteration:
                 break
 
