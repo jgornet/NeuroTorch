@@ -23,6 +23,7 @@ class Predictor(object):
         self.getNet().load_state_dict(torch.load(checkpoint))
 
     def run(self, input_volume, output_volume, batch_size=8):
+        iter(output_volume)
         self.setBatchSize(batch_size)
 
         with torch.no_grad():
