@@ -6,11 +6,15 @@ from neurotorch.datasets.dataset import Data
 
 class Predictor(object):
     def __init__(self, net, checkpoint, gpu_device=None):
-        self.setNet(net)
+        self.setNet(net, gpu_device=gpu_device)
         self.loadCheckpoint(checkpoint)
 
-    def setNet(self, net):
-        self.net = net
+    def setNet(self, net, gpu_device=None):
+        self.device = torch.device("cuda:{}".format(gpu_device)
+                                   if gpu_device is not None
+                                   else "cpu")
+
+        self.net = net.to(self.device)
 
     def getNet(self):
         return self.net
@@ -57,6 +61,7 @@ class Predictor(object):
     def toArray(self, data):
         torch_data = data.getArray().astype(np.float)
         torch_data = torch_data.reshape(1, 1, *torch_data.shape)
+        torch_data = torch_data.to(self.device)
         return torch_data
 
     def toTorch(self, batch):
