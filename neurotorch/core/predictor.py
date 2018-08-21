@@ -22,7 +22,7 @@ class Predictor(object):
         self.setBatchSize(batch_size)
 
         with torch.no_grad():
-            self.run_batch(self.getBatch())
+            self.run_batch(self.getBatch(input_volume))
 
     def getBatch(self, input_volume):
         batch = []
