@@ -72,6 +72,4 @@ class Predictor(object):
         batch = [Data(tensor.cpu().numpy()[0], bounding_box)
                  for tensor, bounding_box in zip(tensor_list, bounding_boxes)]
 
-        print(batch[0].getArray())
-
         return batch
