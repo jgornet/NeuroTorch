@@ -104,15 +104,15 @@ class TestTrainer(unittest.TestCase):
                                                  "sample_volume.tif"))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                  "labels.tif"))
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=100,
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=200,
                           gpu_device=0)
         trainer = CheckpointWriter(trainer,
                                    checkpoint_dir='./tests/checkpoints',
-                                   checkpoint_period=100)
+                                   checkpoint_period=200)
 
         trainer.run_training()
 
-        checkpoint = './tests/checkpoints/iteration_100.ckpt'
+        checkpoint = './tests/checkpoints/iteration_200.ckpt'
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                  "sample_volume.tif"))
         predictor = Predictor(net, checkpoint, gpu_device=0)
@@ -122,6 +122,6 @@ class TestTrainer(unittest.TestCase):
                                         .getNumpyDim()))
         predictor.run(inputs_dataset, output_volume, batch_size=8)
 
-        np.save(os.path.join(IMAGE_PATH,
-                             "test_prediction.npy"),
-                output_volume.getArray())
+        tif.imsave(os.path.join(IMAGE_PATH,
+                                "test_prediction.npy"),
+                   output_volume.getArray().astype(np.float32))

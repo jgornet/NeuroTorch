@@ -45,9 +45,6 @@ class Predictor(object):
         self.batch_size = batch_size
 
     def run_batch(self, batch, output_volume):
-        # if len(self.getBatch()) != self.getBatchSize():
-        #     raise ValueError("Batch number must equal set batch size")
-
         bounding_boxes, arrays = self.toTorch(batch)
         inputs = Variable(arrays).float()
 
@@ -55,8 +52,6 @@ class Predictor(object):
         data_list = self.toData(outputs, bounding_boxes)
         for data in data_list:
             output_volume.blend(data)
-            if (data.getArray() == 0.0).any():
-                print(data.getArray())
 
     def toArray(self, data):
         torch_data = data.getArray().astype(np.float)
