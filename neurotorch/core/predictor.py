@@ -69,5 +69,6 @@ class Predictor(object):
     def toData(self, tensor_list, bounding_boxes):
         batch = [Data(tensor.cpu().numpy()[0], bounding_box)
                  for tensor, bounding_box in zip(tensor_list, bounding_boxes)]
+        print(bounding_boxes)
 
         return batch
