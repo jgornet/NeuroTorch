@@ -52,6 +52,7 @@ class Predictor(object):
         inputs = Variable(arrays).float()
 
         outputs = self.getNet()(inputs)
+        print(outputs)
         data = self.toData(outputs, bounding_boxes)
         map(output_volume.blend, data)
 

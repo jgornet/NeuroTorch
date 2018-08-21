@@ -104,14 +104,17 @@ class TestTrainer(unittest.TestCase):
                                                  "sample_volume.tif"))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                  "labels.tif"))
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1000,
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=100,
                           gpu_device=0)
         trainer = CheckpointWriter(trainer,
                                    checkpoint_dir='./tests/checkpoints',
-                                   checkpoint_period=1000)
+                                   checkpoint_period=100)
+        trainer = TrainingLogger(trainer, logger_dir='.')
+        trainer = LossWriter(trainer, './tests/', "test_prediction")
+
         trainer.run_training()
 
-        checkpoint = './tests/checkpoints/iteration_1000.ckpt'
+        checkpoint = './tests/checkpoints/iteration_100.ckpt'
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                  "sample_volume.tif"))
         predictor = Predictor(net, checkpoint, gpu_device=0)
