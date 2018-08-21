@@ -61,8 +61,8 @@ class Trainer(object):
         :param sample_batch: A dictionary containing inputs and labels with the keys 
 "input" and "label", respectively
         """
-        inputs = Variable(np.concatenate(sample_batch[0])).float()
-        labels = Variable(np.concatenate(sample_batch[1])).float()
+        inputs = Variable(torch.cat(sample_batch[0])).float()
+        labels = Variable(torch.cat(sample_batch[1])).float()
 
         inputs, labels = inputs.to(self.device), labels.to(self.device)
 
