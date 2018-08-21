@@ -56,7 +56,7 @@ class Predictor(object):
 
     def toArray(self, data):
         torch_data = data.getArray().astype(np.float)
-        torch_data = torch_data.reshape(1, *torch_data.shape)
+        torch_data = torch_data.reshape(1, 1, *torch_data.shape)
         return torch_data
 
     def toTorch(self, batch):
