@@ -123,5 +123,5 @@ class TestTrainer(unittest.TestCase):
         predictor.run(inputs_dataset, output_volume, batch_size=8)
 
         np.save(os.path.join(IMAGE_PATH,
-                             "test_prediction.tif"),
+                             "test_prediction.npy"),
                 output_volume.getArray())
