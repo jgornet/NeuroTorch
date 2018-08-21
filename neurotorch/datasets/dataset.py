@@ -263,6 +263,9 @@ corresponding three-dimensional volume dataset
         else:
             raise IOError("{} was not found".format(tiff_file))
 
+        # Normalize array
+        array = (array - np.min(array))*1/(np.max(array)-np.min(array))
+
         super().__init__(array, *args, **kwargs)
 
 
