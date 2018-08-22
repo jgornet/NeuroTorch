@@ -23,21 +23,17 @@ class Predictor(object):
         self.getNet().load_state_dict(torch.load(checkpoint))
 
     def run(self, input_volume, output_volume, batch_size=8):
-        iter(output_volume)
         self.setBatchSize(batch_size)
 
         with torch.no_grad():
-            self.run_batch(self.getBatch(input_volume), output_volume)
+            batch_list = [list(range(len(input_volume)))
+                          for i in range(0,
+                                         len(input_volume),
+                                         self.getBatchSize())]
 
-    def getBatch(self, input_volume):
-        batch = []
-        for i in range(self.getBatchSize()):
-            try:
-                batch.append(next(input_volume))
-            except StopIteration:
-                break
-
-        return batch
+            for batch_index in batch_list:
+                batch = [input_volume[i] for i in batch_index]
+                self.run_batch(batch, output_volume)
 
     def getBatchSize(self):
         return self.batch_size
