@@ -104,7 +104,7 @@ class TestTrainer(unittest.TestCase):
         checkpoint = './tests/checkpoints/iteration_10.ckpt'
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                  "sample_volume.tif"))
-        predictor = Predictor(net, checkpoint, gpu_device=0)
+        predictor = Predictor(net, checkpoint, gpu_device=1)
 
         output_volume = Volume(np.zeros(inputs_dataset
                                         .getBoundingBox()
