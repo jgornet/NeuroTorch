@@ -14,7 +14,7 @@ class Predictor(object):
                                    if gpu_device is not None
                                    else "cpu")
 
-        self.net = net.to(self.device)
+        self.net = net.to(self.device).eval()
 
     def getNet(self):
         return self.net
@@ -22,17 +22,18 @@ class Predictor(object):
     def loadCheckpoint(self, checkpoint):
         self.getNet().load_state_dict(torch.load(checkpoint))
 
-    def run(self, input_volume, output_volume, batch_size=8):
+    def run(self, input_volume, output_volume, batch_size=20):
         self.setBatchSize(batch_size)
 
         with torch.no_grad():
-            batch_list = [list(range(len(input_volume)))
+            batch_list = [list(range(len(input_volume)))[i:i+self.getBatchSize()]
                           for i in range(0,
                                          len(input_volume),
                                          self.getBatchSize())]
 
             for batch_index in batch_list:
                 batch = [input_volume[i] for i in batch_index]
+
                 self.run_batch(batch, output_volume)
 
     def getBatchSize(self):
@@ -46,6 +47,7 @@ class Predictor(object):
         inputs = Variable(arrays).float()
 
         outputs = self.getNet()(inputs)
+
         data_list = self.toData(outputs, bounding_boxes)
         for data in data_list:
             output_volume.blend(data)
@@ -64,8 +66,7 @@ class Predictor(object):
         return bounding_boxes, arrays
 
     def toData(self, tensor_list, bounding_boxes):
-        batch = [Data(tensor.cpu().numpy()[0], bounding_box)
+        batch = [Data(tensor.data[0].cpu().numpy(), bounding_box)
                  for tensor, bounding_box in zip(tensor_list, bounding_boxes)]
-        print(bounding_boxes)
 
         return batch

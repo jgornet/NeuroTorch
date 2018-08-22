@@ -13,6 +13,7 @@ import pytest
 import tifffile as tif
 import numpy as np
 from neurotorch.core.predictor import Predictor
+import time
 
 IMAGE_PATH = "./tests/images"
 
@@ -109,7 +110,8 @@ class TestTrainer(unittest.TestCase):
         output_volume = Volume(np.zeros(inputs_dataset
                                         .getBoundingBox()
                                         .getNumpyDim()))
-        predictor.run(inputs_dataset, output_volume, batch_size=1)
+
+        predictor.run(inputs_dataset, output_volume, batch_size=5)
 
         tif.imsave(os.path.join(IMAGE_PATH,
                                 "test_prediction.tif"),
