@@ -7,6 +7,8 @@
 #include "hierarchy_prune.h"
 #include "marker_radius.h"
 
+#include <pybind11/pybind11.h>
+
 using namespace std;
 
 string basename(string para) {
@@ -34,7 +36,12 @@ void printHelp() {
     cout<<endl;
 }
 
-int main(int argc, char* argv[]) {
+int reconstruct(char* filename) {
+  int argc = 2;
+  char* argv[2];
+  argv[0] = "./app2";
+  argv[1] = filename;
+  
     if(argc == 1) {
         printHelp();
         return 0;
@@ -314,3 +321,6 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+PYBIND11_MODULE(app2, m) {
+  m.def("reconstruct", &reconstruct);
+}
