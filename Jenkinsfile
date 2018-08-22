@@ -16,7 +16,6 @@ pipeline {
 
         success {
           archiveArtifacts 'tests/images/*tif'
-          archiveArtifacts 'tests/images/*npy'
         }
 
       }
