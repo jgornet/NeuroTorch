@@ -58,7 +58,7 @@ class Data:
                     self.getBoundingBox())
 
 
-class Dataset(ABC):
+class Dataset(object):
     def __init__(self):
         super().__init__()
 
@@ -79,6 +79,7 @@ class Dataset(ABC):
         pass
 
     def __iter__(self):
+        self.index = 0
         return self
 
     def __next__(self):
@@ -87,7 +88,6 @@ class Dataset(ABC):
             self.index += 1
             return result
         else:
-            self.index = 0
             raise StopIteration
 
 
@@ -262,6 +262,9 @@ corresponding three-dimensional volume dataset
 
         else:
             raise IOError("{} was not found".format(tiff_file))
+
+        # Normalize array
+        array = (array - np.min(array))*1.0/(np.max(array)-np.min(array))
 
         super().__init__(array, *args, **kwargs)
 
