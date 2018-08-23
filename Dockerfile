@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
          curl \
          vim \
          ca-certificates \
+	 clang \
 	 libtiff5-dev && \
     rm -rf /var/lib/apt/lists/*
 
