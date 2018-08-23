@@ -1,4 +1,4 @@
-# NeuroTorch - Deep learning for reconstructing neuron morphology from optical microscopy
+# ![NeuroTorch](/docs/images/NeuroTorch%20Logo.png?raw=true)
 
 ## Core features
 
