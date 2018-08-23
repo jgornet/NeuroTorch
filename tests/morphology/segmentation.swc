@@ -1,4 +1,4 @@
-#name Z11_Y10_2300-2399-segmentation_hp.swc
+#name segmentation_hp.swc
 #comment 
 ##n,type,x,y,z,radius,parent
 1 274 1002 793 73 3 2
