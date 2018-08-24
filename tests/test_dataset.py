@@ -1,4 +1,7 @@
-from neurotorch.datasets.volumedataset import TiffVolume, AlignedVolume
+from neurotorch.datasets.dataset import (LargeTiffVolume,
+                                         TiffVolume, AlignedVolume,
+                                         Volume)
+import numpy as np
 import unittest
 import tifffile as tif
 import os.path
@@ -48,12 +51,31 @@ class TestDataset(unittest.TestCase):
                          == testDataset[10].getArray()).all,
                         "TIFF dataset output does not match written output")
 
-    @pytest.mark.skip()
     def test_stitcher(self):
         # Stitch a test TIFF dataset
-        testDataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                              "sample_volume.tif"))
-        stitcher = TiffStitcher(testDataset, testDataset.getDimensions())
-        stitcher.stitch_dataset(testDataset,
-                                os.path.join(IMAGE_PATH,
-                                             "test_stitcher.tif"))
+        inputDataset = TiffVolume(os.path.join(IMAGE_PATH,
+                                               "sample_volume.tif"))
+        outputDataset = Volume(np.zeros(inputDataset
+                                        .getBoundingBox()
+                                        .getNumpyDim()))
+        for data in inputDataset:
+            outputDataset.blend(data)
+
+        tif.imsave(os.path.join(IMAGE_PATH,
+                                "test_stitch.tif"),
+                   outputDataset[300]
+                   .getArray()
+                   .astype(np.uint16))
+
+    def test_large_dataset(self):
+        # Test that TiffVolume opens a TIFF stack
+        testDataset = LargeTiffVolume(os.path.join(IMAGE_PATH,
+                                                   "test_large_volume"),
+                                      iteration_size=BoundingBox(Vector(0, 0, 0),
+                                                                 Vector(128, 128, 20)),
+                                      stride=Vector(128, 128, 20))
+
+        # Test that TiffVolume can read and write consistent samples
+        tif.imsave(os.path.join(IMAGE_PATH,
+                                "test_large_write.tif"),
+                   testDataset[0].getArray())

@@ -114,6 +114,9 @@ class BoundingBox:
 
         return chunk_size
 
+    def getNumpyDim(self):
+        return self.getSize().getComponents()[::-1]
+
     def isDisjoint(self, other):
         if not isinstance(other, BoundingBox):
             raise ValueError("other must be a vector instead other is "
@@ -166,3 +169,18 @@ class BoundingBox:
         edge1, edge2 = self.getEdges()
         result = BoundingBox(edge1 + other, edge2 + other)
         return result
+
+    def __sub__(self, other):
+        return self.__add__(other*-1)
+
+    def __eq__(self, other):
+        if not isinstance(other, BoundingBox):
+            raise ValueError("other must be a BoundingBox")
+
+        s_edge1, s_edge2 = self.getEdges()
+        o_edge1, o_edge2 = other.getEdges()
+
+        return (s_edge1 == o_edge1) and (s_edge2 == o_edge2)
+
+    def __ne__(self, other):
+        return not (self == other)

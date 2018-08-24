@@ -10,31 +10,23 @@ class SimplePointBCEWithLogitsLoss(Module):
     """
     def __init__(self):
         super().__init__()
-        self.simple_weight = SimplePointWeight()
+        self.bce = BCEWithLogitsLoss()
 
     def forward(self, prediction, label):
         weighted_prediction = self.simple_weight(prediction)
         weighted_label = self.simple_weight(label)
 
-        cost = BCEWithLogitsLoss(weighted_prediction, weighted_label)
+        cost = self.bce(weighted_prediction, weighted_label)
 
         return cost
 
-
-class SimplePointWeight(Module):
-    """
-    Weights the simple points in a thresheld input
-    """
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, inputs, simple_weight=1, non_simple_weight=10):
-        non_simple_points = self.label_nonsimple_points(inputs)
-        simple_points = inputs.new_ones(inputs.size()).to("cuda:0") - \
+    def simple_weight(self, tensor, simple_weight=1, non_simple_weight=10):
+        non_simple_points = self.label_nonsimple_points(tensor)
+        simple_points = tensor.new_ones(tensor.size()).to(tensor.get_device()) - \
                         non_simple_points
         inputs_weights = non_simple_weight * non_simple_points + \
                          simple_weight * simple_points
-        result = inputs_weights * inputs
+        result = inputs_weights * tensor
         return result
 
     def label_nonsimple_points(self, tensor, threshold=0.5):
@@ -44,8 +36,13 @@ class SimplePointWeight(Module):
         :param tensor: A PyTorch tensor
         :param threshold: The threshold to binarize the tensor
         """
+        try:
+            device = tensor.get_device()
+        except RuntimeError:
+            raise RuntimeError("simple point weighting currently only works" +
+                               " for GPUs")
         array = tensor.to("cpu")
-        array = array.numpy()
+        array = array.data.numpy()
         array = (array > threshold)
         labeled_array, num_features = label(array)
         size = labeled_array.shape
@@ -60,7 +57,7 @@ class SimplePointWeight(Module):
                                                              i:i+3]):
                         result[k, j, i] = 1
 
-        result = torch.from_numpy(result.astype(np.float32)).to("cuda:0")
+        result = torch.from_numpy(result.astype(np.float32)).to(device)
 
         return result
 
@@ -71,12 +68,12 @@ class SimplePointWeight(Module):
         :param neighborhood: A labeled 3x3 Numpy array
         """
         # Skip if the point is background
-        if neighborhood[1, 1, 1] == 0:
+        if (neighborhood[1, 1, 1] == 0).any():
             return False
 
         # Setup neighborhood
         result = np.copy(neighborhood)
-        threshold = result[1, 1, 1]
+        center_point_label = result[1, 1, 1]
 
         # Create 18-neighborhood structure
         s = np.zeros((3, 3, 3))
@@ -92,14 +89,14 @@ class SimplePointWeight(Module):
 
         # Calculates the topological number of the cavity
         result[result == 0] = -1
-        labeled_array, num_features = label(result != threshold,
+        labeled_array, num_features = label(result != center_point_label,
                                             structure=s)
 
         if num_features != 1:
             return True
 
         # Calculates the topological number of the component
-        result = (result == threshold)
+        result = (result == center_point_label)
         result[1, 1, 1] = 0
         labeled_array, num_features = label(result,
                                             structure=np.ones((3, 3, 3)))
