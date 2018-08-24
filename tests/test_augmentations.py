@@ -2,7 +2,7 @@ from neurotorch.augmentations.brightness import Brightness
 from neurotorch.augmentations.occlusion import Occlusion
 from neurotorch.augmentations.duplicate import Duplicate
 import unittest
-from neurotorch.datasets.volumedataset import TiffVolume, AlignedVolume
+from neurotorch.datasets.dataset import TiffVolume, AlignedVolume
 import tifffile as tif
 import os.path
 import pytest

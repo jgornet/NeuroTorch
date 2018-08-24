@@ -1,7 +1,6 @@
 from neurotorch.augmentations.augmentation import Augmentation
-from neurotorch.datasets.volumedataset import Data
+from neurotorch.datasets.dataset import Data
 import random
-import numpy as np
 
 
 class Brightness(Augmentation):

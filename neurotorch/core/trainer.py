@@ -3,8 +3,9 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from neurotorch.datasets.volumedataset import AlignedVolume, TorchVolume
+from neurotorch.datasets.dataset import AlignedVolume, TorchVolume
 import torch.cuda
+import numpy as np
 
 
 class Trainer(object):
@@ -34,9 +35,13 @@ class Trainer(object):
 
         if optimizer is None:
             self.optimizer = optim.Adam(self.net.parameters())
+        else:
+            self.optimizer = optimizer
 
         if criterion is None:
             self.criterion = nn.BCEWithLogitsLoss()
+        else:
+            self.criterion = criterion
 
         if gpu_device is not None:
             self.gpu_device = gpu_device
@@ -46,8 +51,8 @@ class Trainer(object):
                                                  labels_volume)))
 
         self.data_loader = DataLoader(self.volume,
-                                      batch_size=1, shuffle=True,
-                                      num_workers=2)
+                                      batch_size=8, shuffle=True,
+                                      num_workers=4)
 
     def run_epoch(self, sample_batch):
         """
@@ -65,8 +70,7 @@ class Trainer(object):
 
         outputs = self.net(inputs)
 
-        loss = self.criterion(*outputs,
-                              labels)
+        loss = self.criterion(torch.cat(outputs), labels)
         loss.backward()
         self.optimizer.step()
 

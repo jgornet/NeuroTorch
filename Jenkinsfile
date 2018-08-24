@@ -1,23 +1,32 @@
 pipeline {
     agent {
 	docker {
-    	    image 'gornet/neurotorch:v3'
-	    args '--runtime=nvidia'
+	    image 'gornet/neurotorch:v4'
+	    args '--runtime=nvidia --shm-size 64G'
 	}
+
     }
     stages {
-        stage('Test') {
-            steps {
-                sh 'python setup.py test'
-            }
-            post {
-                always {
-                    junit 'test-reports/results.xml'
-                }
+	stage('Build') {
+	    steps {
+      		sh 'make -C neurotorch/reconstruction/app2/'
+	    }
+	}
+	stage('Test') {
+	    post {
+		always {
+		    junit 'test-reports/results.xml'
+
+		}
+
 		success {
 		    archiveArtifacts 'tests/images/*tif'
 		}
-            }
-        }
+
+	    }
+	    steps {
+		sh 'python setup.py test'
+	    }
+	}
     }
 }
