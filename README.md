@@ -1,4 +1,4 @@
-# <img alt="NeuroTorch" src="/docs/images/NeuroTorch%20Logo.png?raw=true" height="80">
+# <img alt="NeuroTorch" src="/docs/images/NeuroTorch%20Logo.svg?raw=true" height="80">
 
 **NeuroTorch** is a framework for reconstructing neuronal morphology from
 optical microscopy images. It interfaces PyTorch with different
