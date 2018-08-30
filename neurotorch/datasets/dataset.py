@@ -8,7 +8,7 @@ import os
 import os.path
 import h5py
 from numbers import Number
-import scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage.filters import gaussian_filter
 
 
 class Data:
