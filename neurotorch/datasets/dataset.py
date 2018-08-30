@@ -149,7 +149,7 @@ class Volume(Dataset):
 
         psf = np.zeros((z_len, y_len, x_len))
         psf[z_len//2, y_len//2, x_len//2] = 1
-        psf = gaussian_filter(psf, (z_len//2, y_len//2, x_len//2))
+        psf = gaussian_filter(psf, (z_len*0.15, y_len*0.15, x_len*0.15))
         psf = psf/psf[z_len//2, y_len//2, x_len//2]
 
         array = self.get(data.getBoundingBox()).getArray()
