@@ -153,7 +153,7 @@ class Volume(Dataset):
         psf = psf/psf[z_len//2, y_len//2, x_len//2]
 
         array = self.get(data.getBoundingBox()).getArray()
-        array = np.maximum(array, data.getArray())
+        array = np.maximum(array, data.getArray() * psf)
 
         result = Data(array, data.getBoundingBox())
 
