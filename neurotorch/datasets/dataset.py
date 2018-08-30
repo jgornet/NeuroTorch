@@ -8,6 +8,7 @@ import os
 import os.path
 import h5py
 from numbers import Number
+import scipy.ndimage.filters import gaussian_filter
 
 
 class Data:
@@ -143,12 +144,18 @@ class Volume(Dataset):
 
         self.array[z1:z2, y1:y2, x1:x2] = array
 
-    def blend(self, data, blend_func=None):
-        if blend_func is None:
-            blend_func = np.ones(data.getBoundingBox().getNumpyDim()) * 0.125
+    def blend(self, data):
+        z_len, y_len, x_len = data.getBoundingBox().getSize().getComponents()
 
-        result = self.get(data.getBoundingBox())
-        result += data * Data(blend_func, data.getBoundingBox())
+        psf = np.zeros((z_len, y_len, x_len))
+        psf[z_len//2, y_len//2, x_len//2] = 1
+        psf = gaussian_filter(psf, (z_len//2, y_len//2, x_len//2))
+        psf = psf/psf[z_len//2, y_len//2, x_len//2]
+
+        array = self.get(data.getBoundingBox()).getArray()
+        array = np.maximum(array, data.getArray())
+
+        result = Data(array, data.getBoundingBox())
 
         self.set(result)
 
