@@ -74,14 +74,14 @@ class TestTrainer(unittest.TestCase):
                                                  "sample_volume.tif"))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                  "labels.tif"))
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=10,
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=50,
                           gpu_device=0)
         trainer = CheckpointWriter(trainer,
                                    checkpoint_dir='./tests/checkpoints',
-                                   checkpoint_period=5)
+                                   checkpoint_period=50)
         trainer.run_training()
-        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=10,
-                          checkpoint='./tests/checkpoints/iteration_5.ckpt',
+        trainer = Trainer(net, inputs_dataset, labels_dataset, max_epochs=1,
+                          checkpoint='./tests/checkpoints/iteration_50.ckpt',
                           gpu_device=0)
         trainer.run_training()
 
@@ -102,7 +102,7 @@ class TestTrainer(unittest.TestCase):
 
         net = RSUNet()
 
-        checkpoint = './tests/checkpoints/iteration_10.ckpt'
+        checkpoint = './tests/checkpoints/iteration_50.ckpt'
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                  "sample_volume.tif"))
         predictor = Predictor(net, checkpoint, gpu_device=1)
@@ -114,7 +114,7 @@ class TestTrainer(unittest.TestCase):
         predictor.run(inputs_dataset, output_volume, batch_size=5)
 
         array = output_volume.getArray().astype(np.float32)
-        array = (array - np.min(array))*255/(np.max(array)-np.min(array))
+        array = array*255
 
         tif.imsave(os.path.join(IMAGE_PATH,
                                 "test_prediction.tif"),
