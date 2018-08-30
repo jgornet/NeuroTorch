@@ -115,5 +115,4 @@ class TestTrainer(unittest.TestCase):
 
         tif.imsave(os.path.join(IMAGE_PATH,
                                 "test_prediction.tif"),
-                   output_volume.getArray().astype(np.float16),
-                   compress=6)
+                   output_volume.getArray().astype(np.float32)[25, :, :])
