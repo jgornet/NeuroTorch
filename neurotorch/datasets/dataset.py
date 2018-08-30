@@ -145,7 +145,7 @@ class Volume(Dataset):
         self.array[z1:z2, y1:y2, x1:x2] = array
 
     def blend(self, data):
-        z_len, y_len, x_len = data.getBoundingBox().getSize().getComponents()
+        x_len, y_len, z_len = data.getBoundingBox().getSize().getComponents()
 
         psf = np.zeros((z_len, y_len, x_len))
         psf[z_len//2, y_len//2, x_len//2] = 1
