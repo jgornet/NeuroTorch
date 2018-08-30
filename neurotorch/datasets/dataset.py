@@ -143,12 +143,11 @@ class Volume(Dataset):
 
         self.array[z1:z2, y1:y2, x1:x2] = array
 
-    def blend(self, data, blend_func=None):
-        if blend_func is None:
-            blend_func = np.ones(data.getBoundingBox().getNumpyDim()) * 0.125
+    def blend(self, data):
+        array = self.get(data.getBoundingBox()).getArray()
+        array = np.maximum(array, data.getArray())
 
-        result = self.get(data.getBoundingBox())
-        result += data * Data(blend_func, data.getBoundingBox())
+        result = Data(array, data.getBoundingBox())
 
         self.set(result)
 
