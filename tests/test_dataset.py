@@ -51,6 +51,7 @@ class TestDataset(unittest.TestCase):
                          == testDataset[10].getArray()).all,
                         "TIFF dataset output does not match written output")
 
+    @pytest.mark.skip()
     def test_stitcher(self):
         # Stitch a test TIFF dataset
         inputDataset = TiffVolume(os.path.join(IMAGE_PATH,
