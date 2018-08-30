@@ -4,5 +4,4 @@ pytorch>=0.4.0
 tifffile>=0.14.0
 h5py>=2.7.1
 scipy>=1.1.0
-cuda92
 pybind11>=2.2.3
