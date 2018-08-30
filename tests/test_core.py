@@ -113,10 +113,7 @@ class TestTrainer(unittest.TestCase):
 
         predictor.run(inputs_dataset, output_volume, batch_size=5)
 
-        array = output_volume.getArray().astype(np.float32)
-        array = (array - np.min(array))*65535/(np.max(array)-np.min(array))
-
         tif.imsave(os.path.join(IMAGE_PATH,
                                 "test_prediction.tif"),
-                   array.astype(np.uint16),
+                   output_volume.getArray().astype(np.float16),
                    compress=6)
