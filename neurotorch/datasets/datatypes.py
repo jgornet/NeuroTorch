@@ -183,7 +183,7 @@ class BoundingBox:
         """
         return self.getSize().getComponents()[::-1]
 
-    def isDisjoint(self, other: BoundingBox) -> bool:
+    def isDisjoint(self, other) -> bool:
         """
         Determines whether two bounding boxes are disjoint from each other
         :param other: The other bounding box for comparison

@@ -17,11 +17,11 @@ class Data:
     """
     def __init__(self, array: ndarray, bounding_box: BoundingBox):
         """
+        Initializes a data packet from an Numpy array and its bounding box
+
         :param array: A Numpy array containing the data packet's contents
-        :type array: ndarray
-        :param bounding_box: A bounding box specifying the data packet's 
+        :param bounding_box: A bounding box specifying the data packet's
 location in 3D-space
-        :type bounding_box: BoundingBox
         """
         self._setBoundingBox(bounding_box)
         self._setArray(array)
@@ -30,16 +30,16 @@ location in 3D-space
         """
         Returns the bounding box specifying the data packet's location in
 3D-space
+
         :return: The bounding box of the data packet's location
-        :rtype: BoundingBox
         """
         return self.bounding_box
 
     def _setBoundingBox(self, bounding_box: BoundingBox):
         """
         Set the bounding box specifying the data packet's location in 3D-space
+
         :param bounding_box: The bounding box of the data packet's location
-        :type bounding_box: BoundingBox
         """
         if not isinstance(bounding_box, BoundingBox):
             raise ValueError("bounding_box must have type BoundingBox")
@@ -49,24 +49,24 @@ location in 3D-space
     def getArray(self) -> ndarray:
         """
         Retrieves the data packet's contents
+
         :return: An Numpy ndarray in row-major order (Z, Y, X)
-        :rtype: ndarray
         """
         return self.array
 
     def _setArray(self, array):
         """
         Sets the data packet's contents
+
         :param array: An Numpy ndarray in row-major order (Z, Y, X)
-        :type array: ndarray
         """
         self.array = array
 
     def getSize(self) -> Vector:
         """
         Retrieves the size of the data packet
+
         :return: A vector containing the data packet's size
-        :rtype: Vector
         """
         return self.getBoundingBox().getSize()
 
@@ -114,8 +114,8 @@ class Dataset:
     def __len__(self) -> int:
         """
         Returns the length of the dataset
+
         :return: The dataset length
-        :rtype: int
         """
         pass
 
@@ -123,14 +123,15 @@ class Dataset:
     def __getitem__(self, idx: int):
         """
         Returns the data sample at index idx from the dataset
+
         :param idx: The index of the data sample
-        :type idx: int
         """
         pass
 
     def __iter__(self):
         """
         Returns an iterable of the dataset
+
         :return: The iterable of the dataset
         """
         self.index = 0
@@ -151,12 +152,22 @@ class Dataset:
 
 class Volume(Dataset):
     """
-    A dataset containing a 3D Numpy array
+    A dataset containing a 3D volumetric array
     """
-    def __init__(self, array, bounding_box=None,
-                 iteration_size=BoundingBox(Vector(0, 0, 0),
-                                            Vector(128, 128, 20)),
-                 stride=Vector(64, 64, 10)):
+    def __init__(self, array: np.ndarray, bounding_box: BoundingBox=None,
+                 iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
+                                                         Vector(128, 128, 20)),
+                 stride: Vector=Vector(64, 64, 10)):
+        """
+        Initializes a volume with a bounding box and iteration parameters
+
+        :param array: A 3D Numpy array
+        :param bounding_box: The bounding box encompassing the volume
+        :param iteration_size: The bounding box of each data sample in the
+dataset iterable
+        :param stride: The stride displacement of each data sample in the
+dataset iterable. The displacement proceeds first from X then to Y then to Z.
+        """
         if isinstance(array, np.ndarray):
             self._setArray(array)
         elif isinstance(array, BoundingBox):
@@ -169,10 +180,21 @@ class Volume(Dataset):
                           stride=stride)
         super().__init__()
 
-    def get(self, bounding_box):
+    def get(self, bounding_box: BoundingBox) -> Data:
+        """
+        Requests a data sample from the volume. If the bounding box does
+not exist, then the method raises a ValueError.
+
+        :param bounding_box: The bounding box of the request data sample
+        :return: The data sample requested
+        """
         if bounding_box.isDisjoint(self.getBoundingBox()):
-            raise ValueError("Bounding box must be inside dataset " +
-                             "dimensions instead bounding box is {} while the dataset dimensions are {}".format(bounding_box, self.getBoundingBox()))
+            error_string = ("Bounding box must be inside dataset " +
+                            "dimensions instead bounding box is {} while " +
+                            "the dataset dimensions are {}")
+            error_string = error_string.format(bounding_box,
+                                               self.getBoundingBox())
+            raise ValueError(error_string)
 
         sub_bounding_box = bounding_box.intersect(self.getBoundingBox())
         array = self.getArray(sub_bounding_box)
@@ -187,7 +209,13 @@ class Volume(Dataset):
 
         return Data(array, bounding_box)
 
-    def set(self, data):
+    def set(self, data: Data):
+        """
+        Sets a section of the volume within the provided bounding box with the
+given data.
+
+        :param data: The data packet to set the volume
+        """
         bounding_box = data.getBoundingBox()
         array = data.getArray()
 
@@ -201,7 +229,13 @@ class Volume(Dataset):
 
         self.array[z1:z2, y1:y2, x1:x2] = array
 
-    def blend(self, data):
+    def blend(self, data: Data):
+        """
+        Blends a section of the volume within the provided bounding box with
+the given data by taking the elementwise maximum value.
+
+        :param data: The data packet to blend into the volume
+        """
         array = self.get(data.getBoundingBox()).getArray()
         array = np.maximum(array, data.getArray())
 
@@ -209,7 +243,14 @@ class Volume(Dataset):
 
         self.set(result)
 
-    def getArray(self, bounding_box=None):
+    def getArray(self, bounding_box: BoundingBox=None) -> np.ndarray:
+        """
+        Retrieves the array contents of the volume. If a bounding box is
+provided, the subsection is returned.
+
+        :param bounding_box: The bounding box of a subsection of the volume.
+If the bounding box is outside of the volume, a ValueError is raised.
+        """
         if bounding_box is None:
             return self.array
 
@@ -228,20 +269,45 @@ class Volume(Dataset):
     def _setArray(self, array):
         self.array = array
 
-    def getBoundingBox(self):
+    def getBoundingBox(self) -> BoundingBox:
+        """
+        Retrieves the bounding box of the volume
+
+        :return: The bounding box of the volume
+        """
         return self.bounding_box
 
-    def setBoundingBox(self, bounding_box=None):
+    def setBoundingBox(self, bounding_box: BoundingBox=None,
+                       displacement: Vector=None):
+        """
+        Sets the bounding box of the volume. By default, it sets the bounding
+box to the volume size
+
+        :param bounding_box: The bounding box of the volume
+        :param displacement: The displacement of the bounding box from the
+origin
+        """
         if bounding_box is None:
             self.bounding_box = BoundingBox(Vector(0, 0, 0),
                                             Vector(*self.getArray().shape[::-1]))
         else:
             self.bounding_box = bounding_box
 
+        if displacement is not None:
+            self.bounding_box = self.bounding_box + displacement
+
     def setIteration(self, iteration_size: BoundingBox, stride: Vector):
+        """
+        Sets the parameters for iterating through the dataset
+
+        :param iteration_size: The size of each data sample in the volume
+        :param stride: The displacement of each iteration
+        """
         if not isinstance(iteration_size, BoundingBox):
-            raise ValueError("iteration_size must have type BoundingBox"
-                             + " instead it has type {}".format(type(iteration_size)))
+            error_string = ("iteration_size must have type BoundingBox"
+                            + " instead it has type {}")
+            error_string = error_string.format(type(iteration_size))
+            raise ValueError(error_string)
 
         if not isinstance(stride, Vector):
             raise ValueError("stride must have type Vector")
@@ -298,7 +364,8 @@ class TiffVolume(Volume):
         """
         Loads a TIFF stack file or a directory of TIFF files and creates a
 corresponding three-dimensional volume dataset
-        :param tiff_file: Either a TIFF stack file or a directory containing TIFF files
+        :param tiff_file: Either a TIFF stack file or a directory
+containing TIFF files
         :param chunk_size: Dimensions of the sample subvolume
         """
         if os.path.isfile(tiff_file):
@@ -516,7 +583,9 @@ class LargeTiffVolume(LargeVolume):
 class Hdf5Volume(Volume):
     def __init__(self, hdf5_file, dataset):
         """
-        Loads a HDF5 dataset and creates a corresponding three-dimensional volume dataset
+        Loads a HDF5 dataset and creates a corresponding three-dimensional
+volume dataset
+
         :param hdf5_file: A HDF5 file path
         :param dataset: A HDF5 dataset name
         :param chunk_size: Dimensions of the sample subvolume
