@@ -4,7 +4,10 @@ import numpy as np
 from neurotorch.datasets.dataset import Data
 
 
-class Predictor(object):
+class Predictor:
+    """
+    A predictor segments an input volume into an output volume
+    """
     def __init__(self, net, checkpoint, gpu_device=None):
         self.setNet(net, gpu_device=gpu_device)
         self.loadCheckpoint(checkpoint)

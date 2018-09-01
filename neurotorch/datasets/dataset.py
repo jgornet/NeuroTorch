@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset as _Dataset
 import numpy as np
-from abc import (ABC, abstractmethod)
+from abc import abstractmethod
 from neurotorch.datasets.datatypes import BoundingBox, Vector
 import fnmatch
 import tifffile as tif
@@ -8,36 +8,67 @@ import os
 import os.path
 import h5py
 from numbers import Number
+from numpy import ndarray
 
 
 class Data:
     """
-    An encapsulating object for communicating volume data
+    An encapsulating object for communicating volumetric data
     """
-    def __init__(self, array, bounding_box):
+    def __init__(self, array: ndarray, bounding_box: BoundingBox):
+        """
+        :param array: A Numpy array containing the data packet's contents
+        :type array: ndarray
+        :param bounding_box: A bounding box specifying the data packet's 
+location in 3D-space
+        :type bounding_box: BoundingBox
+        """
         self._setBoundingBox(bounding_box)
         self._setArray(array)
 
-    def getBoundingBox(self):
+    def getBoundingBox(self) -> BoundingBox:
+        """
+        Returns the bounding box specifying the data packet's location in
+3D-space
+        :return: The bounding box of the data packet's location
+        :rtype: BoundingBox
+        """
         return self.bounding_box
 
-    def _setBoundingBox(self, bounding_box):
+    def _setBoundingBox(self, bounding_box: BoundingBox):
+        """
+        Set the bounding box specifying the data packet's location in 3D-space
+        :param bounding_box: The bounding box of the data packet's location
+        :type bounding_box: BoundingBox
+        """
         if not isinstance(bounding_box, BoundingBox):
             raise ValueError("bounding_box must have type BoundingBox")
 
         self.bounding_box = bounding_box
 
-    def getArray(self):
+    def getArray(self) -> ndarray:
+        """
+        Retrieves the data packet's contents
+        :return: An Numpy ndarray in row-major order (Z, Y, X)
+        :rtype: ndarray
+        """
         return self.array
 
     def _setArray(self, array):
+        """
+        Sets the data packet's contents
+        :param array: An Numpy ndarray in row-major order (Z, Y, X)
+        :type array: ndarray
+        """
         self.array = array
 
-    def getSize(self):
+    def getSize(self) -> Vector:
+        """
+        Retrieves the size of the data packet
+        :return: A vector containing the data packet's size
+        :rtype: Vector
+        """
         return self.getBoundingBox().getSize()
-
-    def getDimension(self):
-        return self.getBoundingBox().getDimension()
 
     def __add__(self, other):
         if not isinstance(other, Data):
@@ -48,41 +79,68 @@ class Data:
         return Data(self.getArray() + other.getArray(),
                     self.getBoundingBox())
 
-    def __mul__(self, other):
-        if not isinstance(other, Data):
-            raise ValueError("other must have type Data")
-        if self.getBoundingBox() != other.getBoundingBox():
-            raise ValueError("other must have the same bounding box")
+    def __sub__(self, other):
+        return self + (-other)
 
-        return Data(self.getArray() * other.getArray(),
+    def __neg__(self):
+        return (self * -1)
+
+    def __mul__(self, other):
+        if not isinstance(other, Number):
+            error_string = "other must be a number instead it is a {}"
+            error_string = error_string.format(type(other))
+            raise ValueError(error_string)
+
+        return Data(self.getArray() * other,
                     self.getBoundingBox())
 
+    def __div__(self, other):
+        if not isinstance(other, Number):
+            error_string = "other must be a number instead it is a {}"
+            error_string = error_string.format(type(other))
+            raise ValueError(error_string)
 
-class Dataset(object):
+        return (self * (1/other))
+
+
+class Dataset:
+    """
+    An interface for creating datasets
+    """
     def __init__(self):
         super().__init__()
 
     @abstractmethod
-    def get(self, *args):
+    def __len__(self) -> int:
+        """
+        Returns the length of the dataset
+        :return: The dataset length
+        :rtype: int
+        """
         pass
 
     @abstractmethod
-    def set(self, *args):
-        pass
-
-    @abstractmethod
-    def __len__(self):
-        pass
-
-    @abstractmethod
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
+        """
+        Returns the data sample at index idx from the dataset
+        :param idx: The index of the data sample
+        :type idx: int
+        """
         pass
 
     def __iter__(self):
+        """
+        Returns an iterable of the dataset
+        :return: The iterable of the dataset
+        """
         self.index = 0
         return self
 
     def __next__(self):
+        """
+        Retrieves the next data sample from the dataset
+        :return: The next data sample
+        """
         if self.index < len(self):
             result = self.__getitem__(self.index)
             self.index += 1
@@ -290,8 +348,10 @@ class LargeVolume(Dataset):
 
     def setIteration(self, iteration_size: BoundingBox, stride: Vector):
         if not isinstance(iteration_size, BoundingBox):
-            raise ValueError("iteration_size must have type BoundingBox"
-                             + " instead it has type {}".format(type(iteration_size)))
+            error_string = ("iteration_size must have type BoundingBox"
+                            + " instead it has type {}")
+            error_string = error_string.format(type(iteration_size))
+            raise ValueError(error_string)
 
         if not isinstance(stride, Vector):
             raise ValueError("stride must have type Vector")
@@ -351,13 +411,18 @@ class LargeTiffVolume(LargeVolume):
 
     def get(self, bounding_box):
         if bounding_box.isDisjoint(self.getBoundingBox()):
-            raise ValueError("Bounding box must be inside dataset " +
-                             "dimensions instead bounding box is {} while the dataset dimensions are {}".format(bounding_box, self.getBoundingBox()))
+            error_string = ("Bounding box must be inside dataset " +
+                            "dimensions instead bounding box is {} while " +
+                            "the dataset dimensions are {}")
+            error_string = error_string.format(bounding_box,
+                                               self.getBoundingBox())
+            raise ValueError(error_string)
 
         sub_bounding_box = bounding_box.intersect(self.getBoundingBox())
         array = self.getArray(sub_bounding_box)
 
-        before_pad = bounding_box.getEdges()[0] - sub_bounding_box.getEdges()[0]
+        before_pad = (bounding_box.getEdges()[0] -
+                      sub_bounding_box.getEdges()[0])
         after_pad = sub_bounding_box.getEdges()[1] - bounding_box.getEdges()[1]
 
         if before_pad != Vector(0, 0, 0) and after_pad != Vector(0, 0, 0):

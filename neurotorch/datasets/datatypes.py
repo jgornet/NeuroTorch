@@ -2,20 +2,52 @@ from numbers import Number
 
 
 class Vector:
-    def __init__(self, *components):
+    """
+    A basic vector data type
+    """
+    def __init__(self, *components: Number):
+        """
+        Initializes a vector
+        :param components: Numbers specifying the components of the vector
+        :type components: List of numbers
+        """
         self.setComponents(components)
 
-    def setComponents(self, components):
+    def setComponents(self, components: list):
+        """
+        Set the components in a vector
+        :param components: A list of numbers specifying the vector's 
+components
+        :type components: List of numbers
+        """
         if not all(isinstance(x, Number) for x in components):
             raise ValueError("components must contain all numbers instead" +
                              " it contains {}".format(components))
         self.components = tuple(components)
 
-    def getComponents(self):
+    def getComponents(self) -> list:
+        """
+        Retrieves the components of a vector
+        :return: A list of numbers specifying the vector's components
+        :rtype: List of numbers
+        """
         return self.components
 
-    def getDimension(self):
+    def getDimension(self) -> int:
+        """
+        Returns the dimension of the vector
+        :return: The vector's dimension
+        :rtype: int
+        """
         return len(self.getComponents())
+
+    def __getitem__(self, idx):
+        if not isinstance(idx, int):
+            raise IndexError("the index must be an positive integer")
+        if idx < 0 or idx >= self.getDimension():
+            raise IndexError("the index is out-of-bounds")
+
+        return self.getComponents()[idx]
 
     def __add__(self, other):
         if not isinstance(other, Vector):
@@ -59,6 +91,9 @@ class Vector:
     def __sub__(self, other):
         return self+(other*-1)
 
+    def __neg__(self):
+        return self*-1
+
     def __eq__(self, other):
         if not isinstance(other, Vector):
             raise ValueError("other must be a vector instead"
@@ -79,18 +114,29 @@ class Vector:
     def __iter__(self):
         return iter(self.getComponents())
 
-    def __getitem__(self, idx):
-        if idx < self.getDimension():
-            return self.getComponents()[idx]
-        else:
-            raise IndexError("the index is out of bounds")
-
 
 class BoundingBox:
+    """
+    A basic data type specifying a cube
+    """
     def __init__(self, edge1: Vector, edge2: Vector):
+        """
+        Initializes a bounding box
+        :param edge1: A vector specifying the first edge of the box
+        :type edge1: Vector
+        :param edge2: A vector specifying the second edge of the box
+        :type edge2: Vector
+        """
         self.setEdges(edge1, edge2)
 
     def setEdges(self, edge1: Vector, edge2: Vector):
+        """
+        Sets the edges of the bounding box
+        :param edge1: A vector specifying the first edge of the box
+        :type edge1: Vector
+        :param edge2: A vector specifying the second edge of the box
+        :type edge2: Vector
+        """
         if not isinstance(edge1, Vector) or not isinstance(edge2, Vector):
             raise ValueError("edges must be vectors")
 
@@ -102,22 +148,49 @@ class BoundingBox:
         self.edge1 = edge1
         self.edge2 = edge2
 
-    def getEdges(self):
+    def getEdges(self) -> tuple:
+        """
+        Returns the two edges for the bounding box
+        :return: A tuple of two vectors containing the edges of the box
+        :rtype: tuple
+        """
         return (self.edge1, self.edge2)
 
-    def getDimension(self):
+    def getDimension(self) -> int:
+        """
+        Returns the dimension of the bounding box
+        :return: The dimension of the bounding box
+        :rtype: int
+        """
         return self.getEdges()[0].getDimension()
 
-    def getSize(self):
+    def getSize(self) -> Vector:
+        """
+        Returns the size of the bounding box as a vector
+        :return: The size of the bounding box
+        :rtype: Vector
+        """
         edge1, edge2 = self.getEdges()
         chunk_size = edge2 - edge1
 
         return chunk_size
 
-    def getNumpyDim(self):
+    def getNumpyDim(self) -> list:
+        """
+        Returns the size of the bounding box in row-major order (Z, Y, X)
+        :return: Size of the bounding box in row-major order (Z, Y, X)
+        :rtype: list
+        """
         return self.getSize().getComponents()[::-1]
 
-    def isDisjoint(self, other):
+    def isDisjoint(self, other: BoundingBox) -> bool:
+        """
+        Determines whether two bounding boxes are disjoint from each other
+        :param other: The other bounding box for comparison
+        :type other: BoundingBox
+        :return: True if the bounding boxes are disjoint, false otherwise
+        :rtype: bool
+        """
         if not isinstance(other, BoundingBox):
             raise ValueError("other must be a vector instead other is "
                              "{}".format(type(other)))
@@ -130,27 +203,61 @@ class BoundingBox:
         return result
 
     def isSubset(self, other):
+        """
+        Determines whether the bounding box is a subset of the other
+        :param other: The other bounding box for comparison
+        :type other: BoundingBox
+        :return: True if the bounding box is a subset of the other, false
+ otherwise
+        :rtype: bool
+        """
         if not isinstance(other, BoundingBox):
             raise ValueError("other must be a vector instead other is "
                              "{}".format(type(other)))
 
+        # Determines whether the first bounding box's components are
+        # less than or equal to the other's components
         result = any(r1 <= r2 for r1, r2 in zip(self.getEdges()[1],
                                                 other.getEdges()[1]))
+
+        # Determines whether the first bounding box's components are
+        # greater than or equal to the other's components
         result &= any(r1 >= r2 for r1, r2 in zip(self.getEdges()[0],
                                                  other.getEdges()[0]))
 
         return result
 
     def isSuperset(self, other):
+        """
+        Determines whether the bounding box is a super set of the other
+        :param other: The other bounding box for comparison
+        :type other: BoundingBox
+        :return: True if the bounding box is a super set of the other, false
+ otherwise
+        :rtype: bool
+        """
         return other.isSubset(self)
 
     def intersect(self, other):
+        """
+        Returns the bounding box given by the intersection of two
+bounding boxes
+        :param other: The other bounding box for the intersection
+        :type other: BoundingBox
+        :return: An bounding box intersecting the two bounding boxes
+        :rtype: BoundingBox
+        """
         if self.isDisjoint(other):
             raise ValueError("The bounding boxes must not be disjoint")
 
+        # The first edge contains the largest components of the first
+        # edge of the two bounding boxes
         edge1 = Vector(*map(lambda x, y: max(x, y),
                             self.getEdges()[0].getComponents(),
                             other.getEdges()[0].getComponents()))
+
+        # The second edge contains the smallest components of the second
+        # edge of the two bounding boxes
         edge2 = Vector(*map(lambda x, y: min(x, y),
                             self.getEdges()[1].getComponents(),
                             other.getEdges()[1].getComponents()))
