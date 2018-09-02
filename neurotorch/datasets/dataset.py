@@ -111,6 +111,41 @@ class Dataset:
         super().__init__()
 
     @abstractmethod
+    def get(self, bounding_box: BoundingBox) -> Data:
+        """
+        Requests a data sample from the dataset. If the bounding box does
+not exist, then the method raises a ValueError.
+
+        :param bounding_box: The bounding box of the request data sample
+        :return: The data sample requested
+        """
+        pass
+
+    @abstractmethod
+    def set(self, data: Data):
+        """
+        Sets a section of the dataset within the provided bounding box with the
+given data.
+
+        :param data: The data packet to set the volume
+        """
+        pass
+
+    @abstractmethod
+    def __enter__(self):
+        """
+        Loads the dataset into memory
+        """
+        pass
+
+    @abstractmethod
+    def __exit__(self):
+        """
+        Unloads the dataset from memory
+        """
+        pass
+
+    @abstractmethod
     def __len__(self) -> int:
         """
         Returns the length of the dataset
@@ -358,6 +393,12 @@ origin
 
         return result
 
+    def __enter__(self):
+        pass
+
+    def __exit__(self):
+        pass
+
 
 class TiffVolume(Volume):
     def __init__(self, tiff_file, *args, **kwargs):
@@ -368,16 +409,34 @@ corresponding three-dimensional volume dataset
 containing TIFF files
         :param chunk_size: Dimensions of the sample subvolume
         """
-        if os.path.isfile(tiff_file):
+        # Set TIFF file and bounding box
+        self.setFile(tiff_file)
+        self.setProperties(*args, **kwargs)
+
+    def setFile(self, tiff_file):
+        self.tiff_file = tiff_file
+
+    def getFile(self):
+        return self.tiff_file
+
+    def setProperties(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def getProperties(self):
+        return (self.args, self.kwargs)
+
+    def __enter__(self):
+        if os.path.isfile(self.getFile()):
             try:
-                array = tif.imread(tiff_file)
+                array = tif.imread(self.getFile())
 
             except IOError:
                 raise IOError("TIFF file {} could not be " +
-                              "opened".format(tiff_file))
+                              "opened".format(self.getFile()))
 
-        elif os.path.isdir(tiff_file):
-            tiff_list = os.listdir(tiff_file)
+        elif os.path.isdir(self.getFile()):
+            tiff_list = os.listdir(self.getFile())
             tiff_list = filter(lambda f: fnmatch.fnmatch(f, '*.tif'),
                                tiff_list)
 
@@ -385,12 +444,16 @@ containing TIFF files
                 array = tif.TiffSequence(tiff_list).asarray()
 
         else:
-            raise IOError("{} was not found".format(tiff_file))
+            raise IOError("{} was not found".format(self.getFile()))
 
         # Normalize array
         array = (array - np.min(array))*1.0/(np.max(array)-np.min(array))
 
-        super().__init__(array, *args, **kwargs)
+        args, kwargs = self.getProperties()
+        self.volume = Volume(array, *args, **kwargs)
+
+    def __exit__(self):
+        self.volume = None
 
 
 class LargeVolume(Dataset):
