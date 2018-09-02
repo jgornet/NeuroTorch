@@ -90,6 +90,9 @@ $ python hello-neurotorch.py
 If everything worked out, you should have a file “outputs.tif”—TIFF
 file containing the network prediction—in your directory.
 
+## License
+The NeuroTorch project is licensed under the BSD license.
+
 ## About
 
 This project was created by James Gornet. Significant features were
