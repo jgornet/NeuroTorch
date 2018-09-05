@@ -30,7 +30,7 @@ $ pip install neurotorch
 To install NeuroTorch through Docker, make sure Docker is installed and type
 
 ``` shell
-$ docker run -it gornet/neurotorch:v0.1.0
+$ docker run -it gornet/neurotorch:v0.1.0 /bin/bash
 ```
 
 Otherwise, NeuroTorch can be installed manually by typing in the command-line
