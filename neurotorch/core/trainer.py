@@ -96,7 +96,13 @@ class TrainerDecorator(Trainer):
     A wrapper class to a features for training
     """
     def __init__(self, trainer):
-        self._trainer = trainer
+        if issubclass(type(trainer), TrainerDecorator):
+            self._trainer = trainer._trainer
+        if issubclass(type(trainer), Trainer):
+            self._trainer = trainer
+        else:
+            error_string = "trainer must be a Trainer or TrainerDecorator"
+            raise ValueError(error_string)
 
     def run_epoch(self, sample_batch):
         return self._trainer.run_epoch(sample_batch)

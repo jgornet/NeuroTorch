@@ -61,9 +61,13 @@ class TestDataset(unittest.TestCase):
         for data in inputDataset:
             outputDataset.blend(data)
 
+        self.assertTrue((inputDataset[20].getArray()
+                         == outputDataset[20].getArray()).all,
+                        "Blending output does not match input")
+
         tif.imsave(os.path.join(IMAGE_PATH,
                                 "test_stitch.tif"),
-                   outputDataset[300]
+                   outputDataset[100]
                    .getArray()
                    .astype(np.uint16))
 
