@@ -96,9 +96,9 @@ class TrainerDecorator(Trainer):
     A wrapper class to a features for training
     """
     def __init__(self, trainer):
-        if issubclass(trainer, TrainerDecorator):
+        if issubclass(type(trainer), TrainerDecorator):
             self._trainer = trainer._trainer
-        if issubclass(trainer, Trainer):
+        if issubclass(type(trainer), Trainer):
             self._trainer = trainer
         else:
             error_string = "trainer must be a Trainer or TrainerDecorator"
