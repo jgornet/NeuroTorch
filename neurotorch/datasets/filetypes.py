@@ -22,9 +22,7 @@ containing TIFF files
         """
         # Set TIFF file and bounding box
         self.setFile(tiff_file)
-        self.setBoundingBox(bounding_box)
-        self.setIterationSize(iteration_size)
-        self.setStride(stride)
+        super().__init__(bounding_box, iteration_size, stride)
 
     def setFile(self, tiff_file):
         if os.path.isfile(tiff_file) or os.path.isdir(tiff_file):
