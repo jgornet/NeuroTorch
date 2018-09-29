@@ -9,7 +9,7 @@ import tifffile as tif
 
 
 class TiffVolume(Volume):
-    def __init__(self, tiff_file, bounding_box: BoundingBox=None,
+    def __init__(self, tiff_file, bounding_box: BoundingBox,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
                                                          Vector(128, 128, 20)),
                  stride: Vector=Vector(64, 64, 10)):
@@ -22,7 +22,9 @@ containing TIFF files
         """
         # Set TIFF file and bounding box
         self.setFile(tiff_file)
-        self.setBoundingBox(bounding_box, iteration_size, stride)
+        self.setBoundingBox(bounding_box)
+        self.setIterationSize(iteration_size)
+        self.setStride(stride)
 
     def setFile(self, tiff_file):
         if os.path.isfile(tiff_file) or os.path.isdir(tiff_file):
@@ -60,7 +62,9 @@ containing TIFF files
                             iteration_size=self.getIterationSize(),
                             stride=self.getStride())
 
-    def __exit__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
         self.volume = None
 
 

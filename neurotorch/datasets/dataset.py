@@ -177,7 +177,7 @@ given data.
         pass
 
     @abstractmethod
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         """
         Unloads the dataset from memory
         """
