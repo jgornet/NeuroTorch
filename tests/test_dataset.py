@@ -1,11 +1,13 @@
 from neurotorch.datasets.dataset import (LargeTiffVolume,
                                          TiffVolume, AlignedVolume,
-                                         Volume)
+                                         Array)
 import numpy as np
 import unittest
 import tifffile as tif
 import os.path
 import pytest
+from os import getpid
+from psutil import Process
 from neurotorch.datasets.datatypes import BoundingBox, Vector
 
 IMAGE_PATH = "./tests/images/"
@@ -55,7 +57,7 @@ class TestDataset(unittest.TestCase):
         # Stitch a test TIFF dataset
         inputDataset = TiffVolume(os.path.join(IMAGE_PATH,
                                                "sample_volume.tif"))
-        outputDataset = Volume(np.zeros(inputDataset
+        outputDataset = Array(np.zeros(inputDataset
                                         .getBoundingBox()
                                         .getNumpyDim()))
         for data in inputDataset:
@@ -83,3 +85,19 @@ class TestDataset(unittest.TestCase):
         tif.imsave(os.path.join(IMAGE_PATH,
                                 "test_large_write.tif"),
                    testDataset[0].getArray())
+
+    def test_memory_free(self):
+        # Test that
+        process = Process(getpid())
+        initial_memory = process.memory_info().rss
+        with TiffVolume(os.path.join(IMAGE_PATH, "sample_volume.tif")) as v:
+            volume_memory = process.memory_info().rss
+
+        final_memory = process.memory_info().rss
+
+        self.assertEqual(initial_memory, final_memory,
+                         msg=("memory leakage: final memory usage is larger " +
+                              "than the initial memory usage"))
+        self.assertLess(initial_memory, volume_memory,
+                        msg=("volume loading error: volume memory usage is " +
+                             "not less than the initial memory usage"))

@@ -2,7 +2,7 @@ import unittest
 from neurotorch.loss.SimplePointWeighting import SimplePointBCEWithLogitsLoss
 from neurotorch.core.trainer import Trainer
 from neurotorch.nets.RSUNet import RSUNet
-from neurotorch.datasets.dataset import (TiffVolume, Volume)
+from neurotorch.datasets.dataset import (TiffVolume, Array)
 from neurotorch.training.logging import (LossWriter,
                                          TrainingLogger)
 from neurotorch.training.checkpoint import CheckpointWriter
@@ -107,7 +107,7 @@ class TestTrainer(unittest.TestCase):
                                                  "sample_volume.tif"))
         predictor = Predictor(net, checkpoint, gpu_device=1)
 
-        output_volume = Volume(np.zeros(inputs_dataset
+        output_volume = Array(np.zeros(inputs_dataset
                                         .getBoundingBox()
                                         .getNumpyDim()))
 
