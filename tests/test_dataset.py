@@ -1,6 +1,5 @@
-from neurotorch.datasets.dataset import (LargeTiffVolume,
-                                         TiffVolume, AlignedVolume,
-                                         Array)
+from neurotorch.datasets.dataset import (AlignedVolume, Array)
+from neurotorch.datasets.filetypes import (LargeTiffVolume, TiffVolume)
 import numpy as np
 import unittest
 import tifffile as tif
@@ -9,6 +8,7 @@ import pytest
 from os import getpid
 from psutil import Process
 from neurotorch.datasets.datatypes import BoundingBox, Vector
+import time
 
 IMAGE_PATH = "./tests/images/"
 
@@ -90,14 +90,21 @@ class TestDataset(unittest.TestCase):
         # Test that
         process = Process(getpid())
         initial_memory = process.memory_info().rss
-        with TiffVolume(os.path.join(IMAGE_PATH, "sample_volume.tif")) as v:
+        
+        start = time.perf_counter()
+        with TiffVolume(os.path.join(IMAGE_PATH, "sample_volume.tif"),
+                        BoundingBox(Vector(0, 0, 0),
+                                    Vector(1024, 512, 50))) as v:
             volume_memory = process.memory_info().rss
+        end = time.perf_counter()
+        print("Load time: {} secs".format(end-start))
 
         final_memory = process.memory_info().rss
 
-        self.assertEqual(initial_memory, final_memory,
-                         msg=("memory leakage: final memory usage is larger " +
-                              "than the initial memory usage"))
+        self.assertAlmostEqual(initial_memory, final_memory,
+                               delta=initial_memory*0.2,
+                               msg=("memory leakage: final memory usage is " +
+                                    "larger than the initial memory usage"))
         self.assertLess(initial_memory, volume_memory,
                         msg=("volume loading error: volume memory usage is " +
                              "not less than the initial memory usage"))
