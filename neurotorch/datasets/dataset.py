@@ -566,21 +566,16 @@ class PooledVolume(Volume):
 
         data = []
         for index in indexes:
-            for stack_index, stack_volume in self.stack:
-                if stack_index == index:
-                    sub_bbox = bounding_box.intersect(stack_volume.getBoundingBox())
-                    data.append(stack_volume.get(sub_bbox))
-                else:
-                    volume = self.volume_list[index].__enter__()
-                    self._pushStack(index, volume)
+            volume = self.volumes[index].__enter__()
+            i = self._pushStack(index, volume)
 
-                    sub_bbox = bounding_box.intersect(volume.getBoundingBox())
-                    data.append(volume.get(sub_bbox))
+            sub_bbox = bounding_box.intersect(volume.getBoundingBox())
+            data.append(volume.get(sub_bbox))
 
         if len(data) > 1:
             shape = bounding_box.getNumpyDim()
-            array = Array(np.zeros(shape))
-            map(lambda item: array.set(item), data)
+            array = Array(np.zeros(shape).astype(np.uint16), bounding_box=bounding_box)
+            [array.set(item) for item in data]
             return Data(array.getArray(), bounding_box)
         else:
             return data[0]
