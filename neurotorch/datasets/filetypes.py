@@ -79,12 +79,13 @@ containing TIFF files
 
 class LargeVolume(Volume):
 
-    def __init__(self, iteration_size=BoundingBox(Vector(0, 0, 0),
-                                                  Vector(128, 128, 20)),
+    def __init__(self, bounding_box,
+                 iteration_size=BoundingBox(Vector(0, 0, 0),
+                                            Vector(128, 128, 20)),
                  stride=Vector(64, 64, 10)):
         self.setIteration(iteration_size=iteration_size,
                           stride=stride)
-        super().__init__()
+        super().__init__(bounding_box)
 
     @abstractmethod
     def get(self, bounding_box):
@@ -158,7 +159,7 @@ class LargeTiffVolume(LargeVolume):
     def __init__(self, tiff_dir, *args, **kwargs):
         self.setDirectory(tiff_dir)
         self.setCache()
-        super().__init__(*args, **kwargs)
+        super().__init__(bounding_box=self.getBoundingBox())
 
     def get(self, bounding_box):
         if bounding_box.isDisjoint(self.getBoundingBox()):
