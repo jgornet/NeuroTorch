@@ -111,5 +111,15 @@ class TestDataset(unittest.TestCase):
     def test_pooled_volume(self):
         pooled_volume = PooledVolume(stack_size=5)
         pooled_volume.add(TiffVolume(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.tif")))
-        pooled_volume.get(BoundingBox((0, 0, 0), (128, 128, 20)))
+                                                  "sample_volume.tif"),
+                                     BoundingBox(Vector(0, 0, 0),
+                                                 Vector(1024, 512, 50))))
+        pooled_volume.add(TiffVolume(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.tif"),
+                                     BoundingBox(Vector(0, 0, 50),
+                                                 Vector(1024, 512, 100))))
+        output = pooled_volume.get(BoundingBox(Vector(0, 0, 40),
+                                               Vector(128, 128, 60)))
+        tif.imsave(os.path.join(IMAGE_PATH,
+                                "test_pooled_volume.tif"),
+                   output.getArray().astype(np.float32))
