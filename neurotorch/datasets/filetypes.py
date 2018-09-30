@@ -33,6 +33,11 @@ containing TIFF files
     def getFile(self):
         return self.tiff_file
 
+    def get(self, bounding_box: BoundingBox) -> Data:
+        if self.array is None:
+            raise ValueError("TiffVolume not instantiated")
+        return self.array.get(bounding_box)
+
     def __enter__(self):
         if os.path.isfile(self.getFile()):
             try:
@@ -56,14 +61,14 @@ containing TIFF files
         # Normalize array
         # array = (array - np.min(array))*1.0/(np.max(array)-np.min(array))
 
-        self.volume = Array(array, bounding_box=self.getBoundingBox(),
+        self.array = Array(array, bounding_box=self.getBoundingBox(),
                             iteration_size=self.getIterationSize(),
                             stride=self.getStride())
 
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.volume = None
+        self.array = None
 
 
 class LargeVolume(Volume):
