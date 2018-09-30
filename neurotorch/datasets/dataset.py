@@ -530,7 +530,7 @@ class PooledVolume(Volume):
             self.stack.pop(0)
 
         pos = len(self.stack)
-        self.stack.insert(pos, (index, volume))
+        self.stack.insert(pos, (index, volume.__enter__()))
 
         return pos
 
@@ -565,7 +565,15 @@ class PooledVolume(Volume):
         indexes = self._queryBoundingBox(bounding_box)
 
         data = []
-        for index in indexes:
+
+        stack_volumes = [volume for i, volume in self.stack if i in indexes]
+        stack_disjoint = list(set(indexes) - set([i for i, v in self.stack]))
+
+        for volume in stack_volumes:
+            sub_bbox = bounding_box.intersect(volume.getBoundingBox())
+            data.append(volume.get(sub_bbox))
+
+        for index in stack_disjoint:
             volume = self.volumes[index].__enter__()
             i = self._pushStack(index, volume)
 
