@@ -100,126 +100,6 @@ location in 3D-space
         return (self * (1/other))
 
 
-class Volume:
-    """
-    An interface for creating volumes
-    """
-    def __init__(self, bounding_box: BoundingBox=None,
-                 iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 20)),
-                 stride: Vector=Vector(64, 64, 10)):
-        self.setBoundingBox(bounding_box)
-        self.setIterationSize(iteration_size)
-        self.setStride(stride)
-        super().__init__()
-
-    def setBoundingBox(self, bounding_box):
-        if not isinstance(bounding_box, BoundingBox):
-            raise ValueError("bounding_box must have type BoundingBox")
-        self.bounding_box = bounding_box
-
-    def getBoundingBox(self):
-        return self.bounding_box
-
-    def setIterationSize(self, iteration_size):
-        if not isinstance(iteration_size, BoundingBox):
-            raise ValueError("iteration_size must have type BoundingBox")
-        self.iteration_size = iteration_size
-
-    def getIterationSize(self):
-        return self.iteration_size
-
-    def setStride(self, stride):
-        if not isinstance(stride, Vector):
-            raise ValueError("stride must have type Vector")
-        self.stride = stride
-
-    def getStride(self):
-        return self.stride
-
-    @abstractmethod
-    def loadArray(self):
-        pass
-
-    @abstractmethod
-    def unloadArray(self):
-        pass
-
-    @abstractmethod
-    def get(self, bounding_box: BoundingBox) -> Data:
-        """
-        Requests a data sample from the dataset. If the bounding box does
-not exist, then the method raises a ValueError.
-
-        :param bounding_box: The bounding box of the request data sample
-        :return: The data sample requested
-        """
-        pass
-
-    @abstractmethod
-    def set(self, data: Data):
-        """
-        Sets a section of the dataset within the provided bounding box with the
-given data.
-
-        :param data: The data packet to set the volume
-        """
-        pass
-
-    @abstractmethod
-    def __enter__(self):
-        """
-        Loads the dataset into memory
-        """
-        pass
-
-    @abstractmethod
-    def __exit__(self, exc_type, exc_value, traceback):
-        """
-        Unloads the dataset from memory
-        """
-        pass
-
-    @abstractmethod
-    def __len__(self) -> int:
-        """
-        Returns the length of the dataset
-
-        :return: The dataset length
-        """
-        pass
-
-    @abstractmethod
-    def __getitem__(self, idx: int):
-        """
-        Returns the data sample at index idx from the dataset
-
-        :param idx: The index of the data sample
-        """
-        pass
-
-    def __iter__(self):
-        """
-        Returns an iterable of the dataset
-
-        :return: The iterable of the dataset
-        """
-        self.index = 0
-        return self
-
-    def __next__(self):
-        """
-        Retrieves the next data sample from the dataset
-        :return: The next data sample
-        """
-        if self.index < len(self):
-            result = self.__getitem__(self.index)
-            self.index += 1
-            return result
-        else:
-            raise StopIteration
-
-
 class Array:
     """
     A dataset containing a 3D volumetric array
@@ -465,6 +345,146 @@ class TorchVolume(_Dataset):
 
     def getVolume(self):
         return self.volume
+
+
+class Volume:
+    """
+    An interface for creating volumes
+    """
+    def __init__(self, bounding_box: BoundingBox=None,
+                 iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
+                                                         Vector(128, 128, 20)),
+                 stride: Vector=Vector(64, 64, 10)):
+        self.setBoundingBox(bounding_box)
+        self.setIterationSize(iteration_size)
+        self.setStride(stride)
+
+    def setArray(self, array: Array):
+        self.array = array
+
+    def getArray(self) -> Array:
+        return self.array
+
+    def request(self, bounding_box):
+        return self.getArray().get(bounding_box)
+
+    def set(self, data: Data):
+        self.getArray().set(data)
+
+    def blend(self, data: Data):
+        self.getArray().blend(data)
+
+    def setIteration(self, iteration_size: BoundingBox, stride: Vector):
+        self.getArray().setIteration(iteration_size, stride)
+        self.setIterationSize(iteration_size)
+        self.setStride(stride)
+
+    def setBoundingBox(self, bounding_box):
+        if not isinstance(bounding_box, BoundingBox):
+            raise ValueError("bounding_box must have type BoundingBox " +
+                             "instead it has type {}".format(type(bounding_box)))
+        self.bounding_box = bounding_box
+
+    def getBoundingBox(self):
+        return self.bounding_box
+
+    def setIterationSize(self, iteration_size):
+        if not isinstance(iteration_size, BoundingBox):
+            raise ValueError("iteration_size must have type BoundingBox")
+        self.iteration_size = iteration_size
+
+    def getIterationSize(self):
+        return self.iteration_size
+
+    def setStride(self, stride):
+        if not isinstance(stride, Vector):
+            raise ValueError("stride must have type Vector")
+        self.stride = stride
+
+    def getStride(self):
+        return self.stride
+
+    @abstractmethod
+    def loadArray(self):
+        pass
+
+    @abstractmethod
+    def unloadArray(self):
+        pass
+
+    @abstractmethod
+    def get(self, bounding_box: BoundingBox) -> Data:
+        """
+        Requests a data sample from the dataset. If the bounding box does
+not exist, then the method raises a ValueError.
+
+        :param bounding_box: The bounding box of the request data sample
+        :return: The data sample requested
+        """
+        pass
+
+    @abstractmethod
+    def set(self, data: Data):
+        """
+        Sets a section of the dataset within the provided bounding box with the
+given data.
+
+        :param data: The data packet to set the volume
+        """
+        pass
+
+    @abstractmethod
+    def __enter__(self):
+        """
+        Loads the dataset into memory
+        """
+        pass
+
+    @abstractmethod
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Unloads the dataset from memory
+        """
+        pass
+
+    @abstractmethod
+    def __len__(self) -> int:
+        """
+        Returns the length of the dataset
+
+        :return: The dataset length
+        """
+        pass
+
+    @abstractmethod
+    def __getitem__(self, idx: int):
+        """
+        Returns the data sample at index idx from the dataset
+
+        :param idx: The index of the data sample
+        """
+        pass
+
+    def __iter__(self):
+        """
+        Returns an iterable of the dataset
+
+        :return: The iterable of the dataset
+        """
+        self.index = 0
+        return self
+
+    def __next__(self):
+        """
+        Retrieves the next data sample from the dataset
+        :return: The next data sample
+        """
+        if self.index < len(self):
+            result = self.__getitem__(self.index)
+            self.index += 1
+            return result
+        else:
+            raise StopIteration
 
 
 class AlignedVolume(Array):
