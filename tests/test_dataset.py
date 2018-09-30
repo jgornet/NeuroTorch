@@ -16,9 +16,15 @@ IMAGE_PATH = "./tests/images/"
 class TestDataset(unittest.TestCase):
     def test_torch_dataset(self):
         input_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "sample_volume.tif"))
+                                                "sample_volume.tif"),
+                                   BoundingBox(Vector(0, 0, 0),
+                                               Vector(1024, 512, 50)))
         label_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "labels.tif"))
+                                                "labels.tif"),
+                                   BoundingBox(Vector(0, 0, 0),
+                                               Vector(1024, 512, 50)))
+        input_dataset.__enter__()
+        label_dataset.__enter__()
         training_dataset = AlignedVolume((input_dataset, label_dataset),
                                          iteration_size=BoundingBox(Vector(0, 0, 0), Vector(128, 128, 20)),
                                          stride=Vector(128, 128, 20))
@@ -32,8 +38,11 @@ class TestDataset(unittest.TestCase):
         # Test that TiffVolume opens a TIFF stack
         testDataset = TiffVolume(os.path.join(IMAGE_PATH,
                                               "sample_volume.tif"),
+                                 BoundingBox(Vector(0, 0, 0),
+                                             Vector(1024, 512, 50)),
                                  iteration_size=BoundingBox(Vector(0, 0, 0), Vector(128, 128, 20)),
                                  stride=Vector(128, 128, 20))
+        testDataset.__enter__()
 
         # Test that TiffVolume has the correct length
         self.assertEqual(64, len(testDataset),
@@ -56,10 +65,13 @@ class TestDataset(unittest.TestCase):
     def test_stitcher(self):
         # Stitch a test TIFF dataset
         inputDataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                               "sample_volume.tif"))
+                                               "sample_volume.tif"),
+                                  BoundingBox(Vector(0, 0, 0),
+                                              Vector(1024, 512, 50)))
         outputDataset = Array(np.zeros(inputDataset
                                         .getBoundingBox()
                                         .getNumpyDim()))
+        inputDataset.__enter__()
         for data in inputDataset:
             outputDataset.blend(data)
 
