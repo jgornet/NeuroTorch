@@ -41,10 +41,10 @@ class Augmentation(AlignedVolume):
         return self.getVolume().getVolumes()[1]
 
     def getInput(self, bounding_box):
-        return self.getInputVolume().get(bounding_box)
+        return self.getInputVolume().request(bounding_box)
 
     def getLabel(self, bounding_box):
-        return self.getLabelVolume().get(bounding_box)
+        return self.getLabelVolume().request(bounding_box)
 
     def setIterationSize(self, iteration_size):
         self.iteration_size = iteration_size

@@ -571,14 +571,14 @@ class PooledVolume(Volume):
 
         for volume in stack_volumes:
             sub_bbox = bounding_box.intersect(volume.getBoundingBox())
-            data.append(volume.get(sub_bbox))
+            data.append(volume.request(sub_bbox))
 
         for index in stack_disjoint:
             volume = self.volumes[index].__enter__()
             i = self._pushStack(index, volume)
 
             sub_bbox = bounding_box.intersect(volume.getBoundingBox())
-            data.append(volume.get(sub_bbox))
+            data.append(volume.request(sub_bbox))
 
         if len(data) > 1:
             shape = bounding_box.getNumpyDim()
