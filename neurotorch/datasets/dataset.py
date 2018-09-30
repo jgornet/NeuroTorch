@@ -286,18 +286,23 @@ given data.
 
         :param data: The data packet to set the volume
         """
-        bounding_box = data.getBoundingBox()
-        array = data.getArray()
+        data_bounding_box = data.getBoundingBox()
+        data_array = data.getArray()
 
-        if not bounding_box.isSubset(self.getBoundingBox()):
+        if not data_bounding_box.isSubset(self.getBoundingBox()):
             raise ValueError("The bounding box must be a subset of the "
                              " volume")
 
-        edge1, edge2 = bounding_box.getEdges()
+        data_edge1, data_edge2 = data_bounding_box.getEdges()
+        array_edge1, array_edge2 = self.getBoundingBox().getEdges()
+
+        edge1 = data_edge1 - array_edge1
+        edge2 = data_edge2 - array_edge1
+
         x1, y1, z1 = edge1.getComponents()
         x2, y2, z2 = edge2.getComponents()
 
-        self.array[z1:z2, y1:y2, x1:x2] = array
+        self.array[z1:z2, y1:y2, x1:x2] = data_array
 
     def blend(self, data: Data):
         """
