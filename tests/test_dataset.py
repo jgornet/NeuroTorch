@@ -120,6 +120,8 @@ class TestDataset(unittest.TestCase):
                                                  Vector(1024, 512, 100))))
         output = pooled_volume.get(BoundingBox(Vector(0, 0, 40),
                                                Vector(128, 128, 60)))
-        tif.imsave(os.path.join(IMAGE_PATH,
-                                "test_pooled_volume.tif"),
-                   output.getArray().astype(np.float32))
+
+        self.assertTrue((tif.imread(os.path.join(IMAGE_PATH,
+                                                 "test_pooled_volume.tif"))
+                         == output.getArray()).all,
+                        "PooledVolume output does not match test case")
