@@ -1,4 +1,4 @@
-from neurotorch.datasets.dataset import (AlignedVolume, Array)
+from neurotorch.datasets.dataset import (AlignedVolume, Array, PooledVolume)
 from neurotorch.datasets.filetypes import (LargeTiffVolume, TiffVolume)
 import numpy as np
 import unittest
@@ -87,7 +87,6 @@ class TestDataset(unittest.TestCase):
                    testDataset[0].getArray())
 
     def test_memory_free(self):
-        # Test that
         process = Process(getpid())
         initial_memory = process.memory_info().rss
         
@@ -108,3 +107,9 @@ class TestDataset(unittest.TestCase):
         self.assertLess(initial_memory, volume_memory,
                         msg=("volume loading error: volume memory usage is " +
                              "not less than the initial memory usage"))
+
+    def test_pooled_volume(self):
+        pooled_volume = PooledVolume(stack_size=5)
+        pooled_volume.add(TiffVolume(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.tif")))
+        pooled_volume.get(BoundingBox((0, 0, 0), (128, 128, 20)))

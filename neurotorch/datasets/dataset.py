@@ -2,13 +2,10 @@ from torch.utils.data import Dataset as _Dataset
 import numpy as np
 from abc import abstractmethod
 from neurotorch.datasets.datatypes import BoundingBox, Vector
-import fnmatch
-import tifffile as tif
-import os
-import os.path
-import h5py
 from numbers import Number
 from numpy import ndarray
+from scipy.spatial import KDTree
+from functools import reduce
 
 
 class Data:
@@ -504,3 +501,121 @@ class AlignedVolume(Array):
     def __getitem__(self, idx):
         result = [volume[idx] for volume in self.getVolumes()]
         return result
+
+
+class PooledVolume(Volume):
+    def __init__(self, volumes=None, stack_size: int=5):
+        if volumes is not None:
+            self.volumes = volumes
+            self.volumes_changed = True
+        else:
+            self.volumes = []
+            self.volumes_changed = False
+
+        self.volume_list = []
+        self.setStack(stack_size)
+
+    def setStack(self, stack_size: int=5):
+        self.stack = []
+        self.stack_size = 5
+
+    def _pushStack(self, index, volume):
+        if len(self.stack) >= self.stack_size:
+            self.stack[0].__exit__()
+            self.stack.pop(0)
+
+        self.stack.append((index, volume))
+
+    def _rebuildIndexes(self):
+        edge1_list = []
+        edge2_list = []
+
+        for volume in self.volumes:
+            edge1, edge2 = map(lambda edge: edge.getComponents(),
+                               volume.getBoundingBox.getEdges())
+            edge1_list.append(edge1)
+            edge2_list.append(edge2)
+
+        self.edge1_list = KDTree(edge1_list)
+        self.edge2_list = KDTree(edge2_list)
+
+        self.volumes_changed = False
+
+    def _queryBoundingBox(self, bounding_box: BoundingBox) -> Volume:
+        if self.volumes_changed:
+            self._rebuildIndexes()
+
+        edge1, edge2 = map(lambda edge: edge.getComponents(),
+                           bounding_box.getEdges())
+        indexes = self.edge1_list.query(edge1, k=8)
+        indexes = filter(lambda index: not bounding_box.isDisjoint(index.getBoundingBox()),
+                         indexes)
+        if not indexes:
+            raise IndexError("bounding_box is not present in any indexes")
+
+        return indexes
+
+    def add(self, volume: Volume):
+        self.volumes_changed = True
+        self.volumes.append(volume)
+
+    def get(self, bounding_box: BoundingBox) -> Data:
+        indexes = self._queryBoundingBox(bounding_box)
+
+        data = []
+        for index in indexes:
+            for stack_index, stack_volume in self.stack:
+                if stack_index == index:
+                    sub_bbox = bounding_box.intersect(stack_volume.getBoundingBox())
+                    data.append(stack_volume.get(sub_bbox))
+                else:
+                    volume = self.volume_list[index].__enter__()
+                    self._pushStack(index, volume)
+
+                    sub_bbox = bounding_box.intersect(volume.getBoundingBox())
+                    data.append(volume.get(sub_bbox))
+
+        if len(data) > 1:
+            shape = bounding_box.getNumpyDim()
+            array = Array(np.zeros(shape))
+            map(lambda item: array.set(item), data)
+            return Data(array.getArray(), bounding_box)
+        else:
+            return data[0]
+
+    def set(self, data: Data):
+        indexes = self._queryBoundingBox(data.getBoundingBox())
+
+        data = []
+        for index in indexes:
+            for stack_index, stack_volume in self.stack:
+                if stack_index == index:
+                    stack_volume.set(data)
+                else:
+                    volume = self.volume_list[index].__enter__()
+                    self._pushStack(index, volume)
+
+                    volume.set(data)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        for index, volume in self.stack:
+            volume.__exit__()
+
+    def __len__(self) -> int:
+        if self.volumes_changed:
+            self.volume_index = map(lambda volume: len(volume), self.volumes)
+            for index, length in enumerate(self.volume_index):
+                if index > 0:
+                    self.volume_index[index] += self.volume_index[index-1]
+            self.length = reduce(lambda x, y: x + y, self.length_list)
+
+        return self.length
+
+    def __getitem__(self, idx: int) -> Data:
+        index = 0
+        while self.volume_index[index] < idx:
+            index += 1
+        index += -1
+        _idx = idx-self.volume_index[index]
+
+        return self.volumes[index][_idx]
