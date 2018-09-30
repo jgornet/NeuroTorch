@@ -529,20 +529,16 @@ class PooledVolume(Volume):
             self.stack[0].__exit__()
             self.stack.pop(0)
 
-        self.stack.append((index, volume))
+        pos = len(self.stack)
+        self.stack.insert(pos, (index, volume))
+
+        return pos
 
     def _rebuildIndexes(self):
-        edge1_list = []
-        edge2_list = []
-
-        for volume in self.volumes:
-            edge1, edge2 = map(lambda edge: edge.getComponents(),
-                               volume.getBoundingBox.getEdges())
-            edge1_list.append(edge1)
-            edge2_list.append(edge2)
+        edge1_list = [volume.getBoundingBox().getEdges()[0].getComponents()
+                      for volume in self.volumes]
 
         self.edge1_list = KDTree(edge1_list)
-        self.edge2_list = KDTree(edge2_list)
 
         self.volumes_changed = False
 
@@ -550,15 +546,16 @@ class PooledVolume(Volume):
         if self.volumes_changed:
             self._rebuildIndexes()
 
-        edge1, edge2 = map(lambda edge: edge.getComponents(),
-                           bounding_box.getEdges())
-        indexes = self.edge1_list.query(edge1, k=8)
-        indexes = filter(lambda index: not bounding_box.isDisjoint(index.getBoundingBox()),
+        edge1 = [bounding_box.getEdges()[0].getComponents()]
+        distances, indexes  = self.edge1_list.query(edge1, k=8)
+        indexes = [index for index, dist in zip(indexes[0], distances[0])
+                   if dist < float('Inf')]
+        indexes = filter(lambda index: not bounding_box.isDisjoint(self.volumes[index].getBoundingBox()),
                          indexes)
         if not indexes:
             raise IndexError("bounding_box is not present in any indexes")
 
-        return indexes
+        return list(indexes)
 
     def add(self, volume: Volume):
         self.volumes_changed = True
