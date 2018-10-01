@@ -289,8 +289,3 @@ volume dataset
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.setArray(None)
-
-    def __getitem__(self, idx):
-        return self.getArray()[idx]
-
-    
