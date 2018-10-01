@@ -265,4 +265,31 @@ volume dataset
         self.hdf5_file = h5py.File(hdf5_file)
         array = self.hdf5_file[dataset].value
 
-        super(array)
+    def setFile(self, hdf5_file):
+        self.hdf5_file = hdf5_file
+
+    def getFile(self):
+        return self.hdf5_file
+
+    def setDataset(self, hdf5_dataset):
+        self.hdf5_dataset = hdf5_dataset
+
+    def getDataset(self):
+        return self.hdf5_dataset
+
+    def __enter__(self):
+        if os.path.isfile(self.getFile()):
+            with h5py.File(self.getFile(), 'r') as f:
+                array = f[self.getDataset()].value
+                array = Array(array, bounding_box=self.getBoundingBox(),
+                              iteration_size=self.getIterationSize(),
+                              stride=self.getStride())
+                self.setArray(array)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.setArray(None)
+
+    def __getitem__(self, idx):
+        return self.getArray()[idx]
+
+    
