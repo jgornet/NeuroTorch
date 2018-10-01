@@ -544,7 +544,7 @@ class PooledVolume(Volume):
 
     def _pushStack(self, index, volume):
         if len(self.stack) >= self.stack_size:
-            self.stack[0].__exit__()
+            self.stack[0].__exit__(None, None, None)
             self.stack.pop(0)
 
         pos = len(self.stack)
@@ -592,7 +592,7 @@ class PooledVolume(Volume):
             data.append(volume.request(sub_bbox))
 
         for index in stack_disjoint:
-            volume = self.volumes[index].__enter__()
+            volume = self.volumes[index]
             i = self._pushStack(index, volume)
 
             sub_bbox = bounding_box.intersect(volume.getBoundingBox())
