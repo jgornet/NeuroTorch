@@ -33,13 +33,6 @@ containing TIFF files
     def getFile(self):
         return self.tiff_file
 
-    def get(self, bounding_box: BoundingBox) -> Data:
-        if self.array is None:
-            raise ValueError("TiffVolume not instantiated")
-        return self.array.get(bounding_box)
-    def getArray(self) -> Array:
-        return self.array
-
     def __enter__(self):
         if os.path.isfile(self.getFile()):
             try:
@@ -69,12 +62,6 @@ containing TIFF files
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.setArray(None)
-
-    def __getitem__(self, idx):
-        return self.getArray()[idx]
-
-    def __len__(self):
-        return len(self.getArray())
 
 
 class LargeVolume(Volume):

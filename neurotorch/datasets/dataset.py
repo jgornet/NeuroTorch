@@ -447,23 +447,21 @@ given data.
         """
         pass
 
-    @abstractmethod
     def __len__(self) -> int:
         """
         Returns the length of the dataset
 
         :return: The dataset length
         """
-        pass
+        return len(self.getArray())
 
-    @abstractmethod
     def __getitem__(self, idx: int):
         """
         Returns the data sample at index idx from the dataset
 
         :param idx: The index of the data sample
         """
-        pass
+        return self.getArray()[idx]
 
     def __iter__(self):
         """
