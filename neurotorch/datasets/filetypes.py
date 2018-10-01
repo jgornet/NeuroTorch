@@ -262,8 +262,9 @@ volume dataset
         :param dataset: A HDF5 dataset name
         :param chunk_size: Dimensions of the sample subvolume
         """
-        self.hdf5_file = h5py.File(hdf5_file)
-        array = self.hdf5_file[dataset].value
+        self.setFile(hdf5_file)
+        self.setDataset(dataset)
+        super().__init__(bounding_box, iteration_size, stride)
 
     def setFile(self, hdf5_file):
         self.hdf5_file = hdf5_file
