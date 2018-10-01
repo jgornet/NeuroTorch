@@ -1,5 +1,6 @@
 from neurotorch.datasets.dataset import (AlignedVolume, Array, PooledVolume)
-from neurotorch.datasets.filetypes import (LargeTiffVolume, TiffVolume)
+from neurotorch.datasets.filetypes import (LargeTiffVolume, TiffVolume,
+                                           Hdf5Volume)
 import numpy as np
 import unittest
 import tifffile as tif
@@ -128,6 +129,26 @@ class TestDataset(unittest.TestCase):
                                                  Vector(1024, 512, 50))))
         pooled_volume.add(TiffVolume(os.path.join(IMAGE_PATH,
                                                   "sample_volume.tif"),
+                                     BoundingBox(Vector(0, 0, 50),
+                                                 Vector(1024, 512, 100))))
+        output = pooled_volume.get(BoundingBox(Vector(0, 0, 40),
+                                               Vector(128, 128, 60)))
+
+        self.assertTrue((tif.imread(os.path.join(IMAGE_PATH,
+                                                 "test_pooled_volume.tif"))
+                         == output.getArray()).all,
+                        "PooledVolume output does not match test case")
+
+    def test_hdf5_volume(self):
+        pooled_volume = PooledVolume(stack_size=5)
+        pooled_volume.add(Hdf5Volume(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.h5"),
+                                     "input-1",
+                                     BoundingBox(Vector(0, 0, 0),
+                                                 Vector(1024, 512, 50))))
+        pooled_volume.add(Hdf5Volume(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.h5"),
+                                     "input-2",
                                      BoundingBox(Vector(0, 0, 50),
                                                  Vector(1024, 512, 100))))
         output = pooled_volume.get(BoundingBox(Vector(0, 0, 40),
