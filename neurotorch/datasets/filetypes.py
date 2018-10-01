@@ -252,8 +252,11 @@ class LargeTiffVolume(LargeVolume):
         return self.cache
 
 
-class Hdf5Volume(Array):
-    def __init__(self, hdf5_file, dataset):
+class Hdf5Volume(Volume):
+    def __init__(self, hdf5_file, dataset, bounding_box: BoundingBox,
+                 iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
+                                                         Vector(128, 128, 20)),
+                 stride: Vector=Vector(64, 64, 10)):
         """
         Loads a HDF5 dataset and creates a corresponding three-dimensional
 volume dataset
