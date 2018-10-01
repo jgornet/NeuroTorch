@@ -96,12 +96,13 @@ class TrainerDecorator(Trainer):
     A wrapper class to a features for training
     """
     def __init__(self, trainer):
-        if issubclass(type(trainer), TrainerDecorator):
+        if isinstance(trainer, TrainerDecorator):
             self._trainer = trainer._trainer
-        if issubclass(type(trainer), Trainer):
+        if isinstance(trainer, Trainer):
             self._trainer = trainer
         else:
-            error_string = "trainer must be a Trainer or TrainerDecorator"
+            error_string = ("trainer must be a Trainer or TrainerDecorator " +
+                            "instead it has type {}".format(type(trainer)))
             raise ValueError(error_string)
 
     def run_epoch(self, sample_batch):
