@@ -33,13 +33,6 @@ containing TIFF files
     def getFile(self):
         return self.tiff_file
 
-    def get(self, bounding_box: BoundingBox) -> Data:
-        if self.array is None:
-            raise ValueError("TiffVolume not instantiated")
-        return self.array.get(bounding_box)
-    def getArray(self) -> Array:
-        return self.array
-
     def __enter__(self):
         if os.path.isfile(self.getFile()):
             try:
@@ -69,12 +62,6 @@ containing TIFF files
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.setArray(None)
-
-    def __getitem__(self, idx):
-        return self.getArray()[idx]
-
-    def __len__(self):
-        return len(self.getArray())
 
 
 class LargeVolume(Volume):
@@ -265,8 +252,11 @@ class LargeTiffVolume(LargeVolume):
         return self.cache
 
 
-class Hdf5Volume(Array):
-    def __init__(self, hdf5_file, dataset):
+class Hdf5Volume(Volume):
+    def __init__(self, hdf5_file, dataset, bounding_box: BoundingBox,
+                 iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
+                                                         Vector(128, 128, 20)),
+                 stride: Vector=Vector(64, 64, 10)):
         """
         Loads a HDF5 dataset and creates a corresponding three-dimensional
 volume dataset
@@ -275,7 +265,30 @@ volume dataset
         :param dataset: A HDF5 dataset name
         :param chunk_size: Dimensions of the sample subvolume
         """
-        self.hdf5_file = h5py.File(hdf5_file)
-        array = self.hdf5_file[dataset].value
+        self.setFile(hdf5_file)
+        self.setDataset(dataset)
+        super().__init__(bounding_box, iteration_size, stride)
 
-        super(array)
+    def setFile(self, hdf5_file):
+        self.hdf5_file = hdf5_file
+
+    def getFile(self):
+        return self.hdf5_file
+
+    def setDataset(self, hdf5_dataset):
+        self.hdf5_dataset = hdf5_dataset
+
+    def getDataset(self):
+        return self.hdf5_dataset
+
+    def __enter__(self):
+        if os.path.isfile(self.getFile()):
+            with h5py.File(self.getFile(), 'r') as f:
+                array = f[self.getDataset()].value
+                array = Array(array, bounding_box=self.getBoundingBox(),
+                              iteration_size=self.getIterationSize(),
+                              stride=self.getStride())
+                self.setArray(array)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.setArray(None)
