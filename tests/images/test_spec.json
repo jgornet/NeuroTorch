@@ -1,10 +1,10 @@
 [
     {
-	"filename" : "/home/gornet/Documents/NeuroTorch/tests/images/sample_volume.tif",
+	"filename" : "sample_volume.tif",
 	"bounding_box" : [[0, 0, 0], [1024, 512, 50]]
     },
     {
-	"filename" : "/home/gornet/Documents/NeuroTorch/tests/images/sample_volume.tif",
+	"filename" : "sample_volume.tif",
 	"bounding_box" : [[0, 0, 50], [1024, 512, 100]]
     }
 ]

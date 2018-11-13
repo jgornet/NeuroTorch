@@ -19,7 +19,7 @@ class Spec(ABC):
         :return: The volume corresponding to the volume dataset
         """
         try:
-            filename = volume_spec["filename"]
+            filename = os.path.abspath(volume_spec["filename"])
 
             if filename.endswith(".tif"):
                 edges = volume_spec["bounding_box"]
@@ -43,6 +43,7 @@ class Spec(ABC):
             else:
                 error_string = "{} is an unsupported filetype".format(volume_type)
                 raise ValueError(error_string)
+
         except KeyError:
             error_string = "given volume_spec is corrupt"
             raise ValueError(error_string)
@@ -72,7 +73,11 @@ class Spec(ABC):
         :return: The pooled volume of the volume dataset
         """
         spec = self.parse(spec_filename)
+
+        cwd = os.getcwd()
+        os.chdir(os.path.dirname(spec_filename))
         pooled_volume = self.create(spec)
+        os.chdir(cwd)
 
         return pooled_volume
 
