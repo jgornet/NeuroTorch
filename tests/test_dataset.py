@@ -1,6 +1,5 @@
 from neurotorch.datasets.dataset import (AlignedVolume, Array, PooledVolume)
-from neurotorch.datasets.filetypes import (LargeTiffVolume, TiffVolume,
-                                           Hdf5Volume)
+from neurotorch.datasets.filetypes import (TiffVolume, Hdf5Volume)
 import numpy as np
 import unittest
 import tifffile as tif
@@ -85,19 +84,6 @@ class TestDataset(unittest.TestCase):
                    outputDataset[100]
                    .getArray()
                    .astype(np.uint16))
-
-    def test_large_dataset(self):
-        # Test that TiffVolume opens a TIFF stack
-        testDataset = LargeTiffVolume(os.path.join(IMAGE_PATH,
-                                                   "test_large_volume"),
-                                      iteration_size=BoundingBox(Vector(0, 0, 0),
-                                                                 Vector(128, 128, 20)),
-                                      stride=Vector(128, 128, 20))
-
-        # Test that TiffVolume can read and write consistent samples
-        tif.imsave(os.path.join(IMAGE_PATH,
-                                "test_large_write.tif"),
-                   testDataset[0].getArray())
 
     def test_memory_free(self):
         process = Process(getpid())
