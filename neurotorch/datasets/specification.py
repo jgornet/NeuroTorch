@@ -85,12 +85,23 @@ class Spec(ABC):
     def parse(self, spec_filename):
         """
         Parses a specification file
+
+        :param spec_filename: The filename of the volume dataset specification
+
+        :return: An array of dictionaries specifying the volume's parameters
         """
         pass
 
 
 class JsonSpec(Spec):
     def parse(self, spec_filename):
+        """
+        Parses a JSON specification file
+
+        :param spec_filename: The filename of the JSON specification
+
+        :return: An array of dictionaries specifying the volume's parameters
+        """
         if not spec_filename.endswith(".json"):
             error_string = "{} is not a JSON file".format(spec_filename)
             raise ValueError(error_string)
