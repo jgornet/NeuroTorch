@@ -71,10 +71,11 @@ class Trainer(object):
         outputs = self.net(inputs)
 
         loss = self.criterion(torch.cat(outputs), labels)
+        loss_hist = loss.cpu().item()
         loss.backward()
         self.optimizer.step()
 
-        return loss
+        return loss_hist
 
     def run_training(self):
         """
@@ -85,9 +86,10 @@ class Trainer(object):
             for i, sample_batch in enumerate(self.data_loader):
                 if num_epoch > self.max_epochs:
                     break
-                print("Epoch {}/{}".format(num_epoch,
-                                           self.max_epochs))
-                self.run_epoch(sample_batch)
+                loss = self.run_epoch(sample_batch)
+                print("Epoch {}/{} ".format(num_epoch,
+                                            self.max_epochs),
+                      "Loss: {:.4f}".format(loss))
                 num_epoch += 1
 
 
@@ -114,7 +116,8 @@ class TrainerDecorator(Trainer):
             for i, sample_batch in enumerate(self._trainer.data_loader):
                 if num_epoch > self._trainer.max_epochs:
                     break
+                loss = self.run_epoch(sample_batch)
                 print("Epoch {}/{}".format(num_epoch,
-                                           self._trainer.max_epochs))
-                self.run_epoch(sample_batch)
+                                           self._trainer.max_epochs),
+                      "Loss: {:.4f}".format(loss))
                 num_epoch += 1
