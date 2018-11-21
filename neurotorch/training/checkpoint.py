@@ -31,12 +31,14 @@ class CheckpointWriter(TrainerDecorator):
 
         :param sample_batch: A batch of input/label samples for training
         """
-        iteration = super().run_epoch(sample_batch)
+        loss = super().run_epoch(sample_batch)
 
         if self.iteration % self.checkpoint_period == 0:
             self.save_checkpoint()
 
         self.iteration += 1
+
+        return loss
 
     def save_checkpoint(self):
         """

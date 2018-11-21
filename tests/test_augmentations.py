@@ -2,7 +2,8 @@ from neurotorch.augmentations.brightness import Brightness
 from neurotorch.augmentations.occlusion import Occlusion
 from neurotorch.augmentations.duplicate import Duplicate
 import unittest
-from neurotorch.datasets.dataset import TiffVolume, AlignedVolume
+from neurotorch.datasets.filetypes import TiffVolume
+from neurotorch.datasets.dataset import AlignedVolume
 import tifffile as tif
 import os.path
 import pytest
@@ -14,9 +15,15 @@ IMAGE_PATH = "./tests/images/"
 class TestAugmentations(unittest.TestCase):
     def test_brightness(self):
         input_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "sample_volume.tif"))
+                                                "sample_volume.tif"),
+                                   BoundingBox(Vector(0, 0, 0),
+                                               Vector(1024, 512, 50)))
         label_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "labels.tif"))
+                                                "labels.tif"),
+                                   BoundingBox(Vector(0, 0, 0),
+                                               Vector(1024, 512, 50)))
+        input_dataset.__enter__()
+        label_dataset.__enter__()
         training_dataset = AlignedVolume((input_dataset, label_dataset),
                                          iteration_size=BoundingBox(Vector(0, 0, 0), Vector(128, 128, 20)),
                                          stride=Vector(128, 128, 20))
@@ -30,9 +37,15 @@ class TestAugmentations(unittest.TestCase):
 
     def test_occlusion(self):
         input_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "sample_volume.tif"))
+                                                "sample_volume.tif"),
+                                   BoundingBox(Vector(0, 0, 0),
+                                               Vector(1024, 512, 50)))
         label_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "labels.tif"))
+                                                "labels.tif"), 
+                                   BoundingBox(Vector(0, 0, 0),
+                                               Vector(1024, 512, 50)))
+        input_dataset.__enter__()
+        label_dataset.__enter__()
         training_dataset = AlignedVolume((input_dataset, label_dataset),
                                          iteration_size=BoundingBox(Vector(0, 0, 0), Vector(128, 128, 20)),
                                          stride=Vector(128, 128, 20))
@@ -46,9 +59,16 @@ class TestAugmentations(unittest.TestCase):
 
     def test_duplication(self):
         input_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "sample_volume.tif"))
+                                                "sample_volume.tif"),
+                                   BoundingBox(Vector(0, 0, 0),
+                                               Vector(1024, 512, 50)))
+        
         label_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "labels.tif"))
+                                                "labels.tif"),
+                                   BoundingBox(Vector(0, 0, 0),
+                                               Vector(1024, 512, 50)))
+        input_dataset.__enter__()
+        label_dataset.__enter__()
         training_dataset = AlignedVolume((input_dataset, label_dataset),
                                          iteration_size=BoundingBox(Vector(0, 0, 0), Vector(128, 128, 20)),
                                          stride=Vector(128, 128, 20))
