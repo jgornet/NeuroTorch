@@ -17,7 +17,7 @@ IMAGE_PATH = "./tests/images/"
 class TestDataset(unittest.TestCase):
     def test_torch_dataset(self):
         input_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "sample_volume.tif"),
+                                                "inputs.tif"),
                                    BoundingBox(Vector(0, 0, 0),
                                                Vector(1024, 512, 50)))
         label_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -38,7 +38,7 @@ class TestDataset(unittest.TestCase):
     def test_tiff_dataset(self):
         # Test that TiffVolume opens a TIFF stack
         testDataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                              "sample_volume.tif"),
+                                              "inputs.tif"),
                                  BoundingBox(Vector(0, 0, 0),
                                              Vector(1024, 512, 50)),
                                  iteration_size=BoundingBox(Vector(0, 0, 0), Vector(128, 128, 20)),
@@ -66,7 +66,7 @@ class TestDataset(unittest.TestCase):
     def test_stitcher(self):
         # Stitch a test TIFF dataset
         inputDataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                               "sample_volume.tif"),
+                                               "inputs.tif"),
                                   BoundingBox(Vector(0, 0, 0),
                                               Vector(1024, 512, 50)))
         outputDataset = Array(np.zeros(inputDataset
@@ -91,7 +91,7 @@ class TestDataset(unittest.TestCase):
         initial_memory = process.memory_info().rss
         
         start = time.perf_counter()
-        with TiffVolume(os.path.join(IMAGE_PATH, "sample_volume.tif"),
+        with TiffVolume(os.path.join(IMAGE_PATH, "inputs.tif"),
                         BoundingBox(Vector(0, 0, 0),
                                     Vector(1024, 512, 50))) as v:
             volume_memory = process.memory_info().rss
@@ -111,11 +111,11 @@ class TestDataset(unittest.TestCase):
     def test_pooled_volume(self):
         pooled_volume = PooledVolume(stack_size=5)
         pooled_volume.add(TiffVolume(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.tif"),
+                                                  "inputs.tif"),
                                      BoundingBox(Vector(0, 0, 0),
                                                  Vector(1024, 512, 50))))
         pooled_volume.add(TiffVolume(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.tif"),
+                                                  "inputs.tif"),
                                      BoundingBox(Vector(0, 0, 50),
                                                  Vector(1024, 512, 100))))
         output = pooled_volume.get(BoundingBox(Vector(0, 0, 40),
@@ -129,12 +129,12 @@ class TestDataset(unittest.TestCase):
     def test_hdf5_volume(self):
         pooled_volume = PooledVolume(stack_size=5)
         pooled_volume.add(Hdf5Volume(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.h5"),
+                                                  "inputs.h5"),
                                      "input-1",
                                      BoundingBox(Vector(0, 0, 0),
                                                  Vector(1024, 512, 50))))
         pooled_volume.add(Hdf5Volume(os.path.join(IMAGE_PATH,
-                                                  "sample_volume.h5"),
+                                                  "inputs.h5"),
                                      "input-2",
                                      BoundingBox(Vector(0, 0, 50),
                                                  Vector(1024, 512, 100))))
@@ -150,7 +150,7 @@ class TestDataset(unittest.TestCase):
         # Tests the JSON volume specification
         json_spec = JsonSpec()
         pooled_volume = json_spec.open(os.path.join(IMAGE_PATH,
-                                                    "test_spec.json"))
+                                                    "inputs_spec.json"))
 
         output = pooled_volume.get(BoundingBox(Vector(0, 0, 40),
                                                Vector(128, 128, 60)))

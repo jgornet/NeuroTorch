@@ -1,10 +1,10 @@
 [
     {
-	"filename" : "sample_volume.tif",
+	"filename" : "labels.tif",
 	"bounding_box" : [[0, 0, 0], [1024, 512, 50]]
     },
     {
-	"filename" : "sample_volume.tif",
+	"filename" : "labels.tif",
 	"bounding_box" : [[0, 0, 50], [1024, 512, 100]]
     }
 ]
