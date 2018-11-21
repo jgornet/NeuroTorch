@@ -57,6 +57,8 @@ class LossWriter(TrainerDecorator):
 
         self.log_loss(loss, duration, self.iteration)
 
+        return loss
+
 
 class TrainingLogger(TrainerDecorator):
     """
@@ -104,8 +106,4 @@ class TrainingLogger(TrainerDecorator):
                                                                     loss,
                                                                     duration))
 
-
-class ImageWriter(TrainerDecorator):
-    def __init__(self, trainer, image_dir):
-        if not os.path.isdir(image_dir):
-            raise IOError("{} is not a valid directory".format(image_dir))
+        return loss
