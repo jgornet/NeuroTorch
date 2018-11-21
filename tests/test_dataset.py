@@ -1,5 +1,6 @@
 from neurotorch.datasets.dataset import (AlignedVolume, Array, PooledVolume)
-from neurotorch.datasets.filetypes import (LargeTiffVolume, TiffVolume)
+from neurotorch.datasets.filetypes import (TiffVolume, Hdf5Volume)
+from neurotorch.datasets.specification import JsonSpec
 import numpy as np
 import unittest
 import tifffile as tif
@@ -85,19 +86,6 @@ class TestDataset(unittest.TestCase):
                    .getArray()
                    .astype(np.uint16))
 
-    def test_large_dataset(self):
-        # Test that TiffVolume opens a TIFF stack
-        testDataset = LargeTiffVolume(os.path.join(IMAGE_PATH,
-                                                   "test_large_volume"),
-                                      iteration_size=BoundingBox(Vector(0, 0, 0),
-                                                                 Vector(128, 128, 20)),
-                                      stride=Vector(128, 128, 20))
-
-        # Test that TiffVolume can read and write consistent samples
-        tif.imsave(os.path.join(IMAGE_PATH,
-                                "test_large_write.tif"),
-                   testDataset[0].getArray())
-
     def test_memory_free(self):
         process = Process(getpid())
         initial_memory = process.memory_info().rss
@@ -137,3 +125,37 @@ class TestDataset(unittest.TestCase):
                                                  "test_pooled_volume.tif"))
                          == output.getArray()).all,
                         "PooledVolume output does not match test case")
+
+    def test_hdf5_volume(self):
+        pooled_volume = PooledVolume(stack_size=5)
+        pooled_volume.add(Hdf5Volume(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.h5"),
+                                     "input-1",
+                                     BoundingBox(Vector(0, 0, 0),
+                                                 Vector(1024, 512, 50))))
+        pooled_volume.add(Hdf5Volume(os.path.join(IMAGE_PATH,
+                                                  "sample_volume.h5"),
+                                     "input-2",
+                                     BoundingBox(Vector(0, 0, 50),
+                                                 Vector(1024, 512, 100))))
+        output = pooled_volume.get(BoundingBox(Vector(0, 0, 40),
+                                               Vector(128, 128, 60)))
+
+        self.assertTrue((tif.imread(os.path.join(IMAGE_PATH,
+                                                 "test_pooled_volume.tif"))
+                         == output.getArray()).all,
+                        "PooledVolume output does not match test case")
+
+    def test_json_spec(self):
+        # Tests the JSON volume specification
+        json_spec = JsonSpec()
+        pooled_volume = json_spec.open(os.path.join(IMAGE_PATH,
+                                                    "test_spec.json"))
+
+        output = pooled_volume.get(BoundingBox(Vector(0, 0, 40),
+                                               Vector(128, 128, 60)))
+
+        self.assertTrue((tif.imread(os.path.join(IMAGE_PATH,
+                                                 "test_pooled_volume.tif"))
+                         == output.getArray()).all,
+                        "JsonSpec output does not match test case")
