@@ -2,10 +2,13 @@ from neurotorch.datasets.dataset import AlignedVolume
 from neurotorch.datasets.datatypes import Vector
 from abc import abstractmethod
 import numpy as np
+from random import 
 
 
 class Augmentation(AlignedVolume):
-    def __init__(self, aligned_volume, iteration_size=None, stride=None):
+    def __init__(self, aligned_volume, iteration_size=None, stride=None,
+                 frequency=1.0):
+        self.setFrequency(frequency)
         self.setVolume(aligned_volume)
         if iteration_size is None:
             iteration_size = self.getInputVolume().getIterationSize()
@@ -14,8 +17,15 @@ class Augmentation(AlignedVolume):
         self.setIteration(iteration_size, stride)
 
     def get(self, bounding_box):
-        augmented_data = self.augment(bounding_box)
-        return augmented_data
+        if random() < self.frequency:
+            augmented_data = self.augment(bounding_box)
+            return augmented_data
+        else:
+            data = (self.getInput(bounding_box), self.getLabel(bounding_box))
+            return data
+
+    def setFrequency(self, frequency=1.0):
+        self.frequency = frequency
 
     def getBoundingBox(self):
         return self.getVolume().getBoundingBox()

@@ -5,10 +5,9 @@ import numpy as np
 
 
 class Duplicate(Augmentation):
-    def __init__(self, volume, frequency=0.1, max_slices=2):
-        self.setFrequency(frequency)
+    def __init__(self, volume, max_slices=2, **kwargs):
         self.setMaxSlices(max_slices)
-        super().__init__(volume)
+        super().__init__(volume, **kwargs)
 
     def augment(self, bounding_box):
         slices = self.getSlices()
@@ -23,9 +22,6 @@ class Duplicate(Augmentation):
 
         return (augmented_raw, augmented_label)
 
-    def setFrequency(self, frequency):
-        self.frequency = frequency
-
     def setMaxSlices(self, max_slices):
         self.max_slices = max_slices
 
@@ -35,12 +31,20 @@ class Duplicate(Augmentation):
     def getSlices(self):
         return random.randrange(self.getMaxSlices())
 
-    def duplication(self, raw_data, label_data,
-                                 location=20, slices=3):
+    def duplication(self, raw_data, label_data, location=20, slices=3,
+                    axis=0):
         raw = raw_data.getArray()
         distorted_raw = raw.copy()
-        duplicate_slices = np.repeat(raw[location, :, :].reshape(1, raw.shape[1], raw.shape[2]), slices, axis=0)
-        distorted_raw[location:location+slices, :, :] = duplicate_slices
+
+        noise = raw[:, :, location:location+slices]
+        noise = noise - convolve(noise, weights=np.full((3, 3, 3), 1.0/27))
+
+        duplicate_slices = np.repeat(raw[:, :, location+slices//2].reshape(raw.shape[0],
+                                                                           raw.shape[1],
+                                                                           1),
+                                     slices, axis=2)
+        duplicate_slices += noise
+        distorted_raw[:, :, location:location+slices] = duplicate_slices
 
         augmented_raw_data = Data(distorted_raw, raw_data.getBoundingBox())
 

@@ -7,9 +7,8 @@ from scipy.ndimage.filters import gaussian_filter
 
 
 class Occlusion(Augmentation):
-    def __init__(self, volume, frequency=0.1):
-        self.setFrequency(frequency)
-        super().__init__(volume)
+    def __init__(self, volume, **kwargs):
+        super().__init__(volume, **kwargs)
 
     def augment(self, bounding_box):
         raw = self.getInput(bounding_box)
@@ -17,9 +16,6 @@ class Occlusion(Augmentation):
         augmented_raw, augmented_label = self.occlude(raw, label)
 
         return (augmented_raw, augmented_label)
-
-    def setFrequency(self, frequency):
-        self.frequency = frequency
 
     def occlude(self, raw_data, label_data, size=(4, 20, 20)):
         # Get array representations from data
@@ -31,13 +27,13 @@ class Occlusion(Augmentation):
         neuron_voxel = random.choice(list(neuron))
 
         # Get occluding region
-        min_x = max(0, neuron_voxel[2]-50)
-        min_y = max(0, neuron_voxel[1]-50)
-        min_z = max(0, neuron_voxel[0]-8)
+        min_x = max(0, neuron_voxel[2]-20)
+        min_y = max(0, neuron_voxel[1]-20)
+        min_z = max(0, neuron_voxel[0]-4)
 
-        max_x = min(raw.shape[2], neuron_voxel[2]+50)
-        max_y = min(raw.shape[1], neuron_voxel[1]+50)
-        max_z = min(raw.shape[0], neuron_voxel[0]+8)
+        max_x = min(raw.shape[2], neuron_voxel[2]+20)
+        max_y = min(raw.shape[1], neuron_voxel[1]+20)
+        max_z = min(raw.shape[0], neuron_voxel[0]+4)
 
         x_len = max_x-min_x
         y_len = max_y-min_y
