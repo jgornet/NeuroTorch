@@ -13,8 +13,8 @@ class Trainer(object):
     Trains a PyTorch neural network with a given input and label dataset
     """
     def __init__(self, net, inputs_volume, labels_volume, checkpoint=None,
-                 optimizer=None, criterion=None, max_epochs=100000,
-                 gpu_device=None):
+                 optimizer=None, criterion=None, max_epochs=10,
+                 gpu_device=None, validation_split=0.2):
         """
         Sets up the parameters for training
 
@@ -50,9 +50,17 @@ class Trainer(object):
         self.volume = TorchVolume(AlignedVolume((inputs_volume,
                                                  labels_volume)))
 
-        self.data_loader = DataLoader(self.volume,
-                                      batch_size=8, shuffle=True,
-                                      num_workers=4)
+        random_idx = np.random.choice(len(self.volume))
+        train_idx = random_idx[:int(len(self.volume)*(1-validation_split))]
+        val_idx = random_idx[int(len(self.volume)*validation_split):]
+
+        self.training_data = DataLoader(self.volume, sampler=train_idx,
+                                        batch_size=16, num_workers=4,
+                                        drop_last=True)
+
+        self.validation_data = DataLoader(self.volume, sampler=val_idx,
+                                          batch_size=16, num_workers=1,
+                                          drop_last=True)
 
     def run_epoch(self, sample_batch):
         """
@@ -77,20 +85,48 @@ class Trainer(object):
 
         return loss_hist
 
+    def evaluate(self, batch):
+        inputs = Variable(sample_batch[0]).float()
+        labels = Variable(sample_batch[1]).float()
+
+        inputs, labels = inputs.to(self.device), labels.to(self.device)
+
+        self.optimizer.zero_grad()
+
+        outputs = self.net(inputs)
+
+        loss = self.criterion(torch.cat(outputs), labels)
+        accuracy = sum((torch.cat(outputs) > 0) & labels) / \
+                   sum((torch.cat(outputs) > 0) | labels)
+
+        return loss.cpu().item(), accuracy.cpu().item(), outputs.cpu().numpy()
+
     def run_training(self):
         """
         Trains the given neural network
         """
         num_epoch = 1
+        num_iter = 1
         while num_epoch <= self.max_epochs:
-            for i, sample_batch in enumerate(self.data_loader):
+            for i, sample_batch in enumerate(self.training_data):
                 if num_epoch > self.max_epochs:
                     break
-                loss = self.run_epoch(sample_batch)
-                print("Epoch {}/{} ".format(num_epoch,
-                                            self.max_epochs),
-                      "Loss: {:.4f}".format(loss))
-                num_epoch += 1
+                if (sum(sample_batch[1]) / sample_batch[1].numel()) < 0.25:
+                    continue
+
+                self.run_epoch(sample_batch)
+
+                if num_iter % 100:
+                    loss, accuracy, _ = self.evaluate(next(self.validation_data))
+                    print("Iteration: {}".format(num_iter),
+                          "Epoch {}/{} ".format(num_epoch,
+                                                self.max_epochs),
+                          "Loss: {:.4f}".format(loss),
+                          "Accuracy: {:.2f}".format(accuracy*100))
+
+                num_iter += 1
+
+            num_epoch += 1
 
 
 class TrainerDecorator(Trainer):
