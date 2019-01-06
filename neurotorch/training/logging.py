@@ -154,7 +154,7 @@ class ImageWriter(TrainerDecorator):
 
         super().__init__(trainer)
         experiment_dir = os.path.join(logger_dir, experiment_name)
-        os.mkdir(experiment_dir)
+        os.makedirs(experiment_dir, exist_ok=True)
         self.image_writer = tensorboardX.SummaryWriter(os.path.join(experiment_dir,
                                                        "validation_image"))
 
@@ -162,11 +162,24 @@ class ImageWriter(TrainerDecorator):
 
     def evaluate(self, batch):
         loss, accuracy, output = super().evaluate(batch)
-        inputs = make_grid(np.amax(sample_batch[0], axis=1, keepdims=True))
-        labels = make_grid(np.amax(sample_batch[1], axis=1, keepdims=True))
-        prediction = make_grid(np.amax(1/(1 + exp(-output)), axis=1, keepdims=True))
-        self.image_writer.add_image("input_image", inputs, self.iteration)
-        self.image_writer.add_image("label_image", labels, self.iteration)
-        self.image_writer.add_image("prediction_image", prediction, self.iteration)
+        inputs = np.amax(batch[0].cpu().numpy(), axis=2).astype(np.float)
+        inputs = inputs * 0.95 / (np.max(inputs) - np.min(inputs))
+        labels = np.amax(batch[1].cpu().numpy(), axis=2)
+        prediction = np.amax(1/(1 + np.exp(-output[0])), axis=2)
+        self.image_writer.add_image("input_image", inputs[0], self.iteration)
+        self.image_writer.add_image("label_image", labels[0], self.iteration)
+        self.image_writer.add_image("prediction_image", prediction[0], self.iteration)
 
         return loss, accuracy, output
+
+    def run_epoch(self, sample_batch):
+        """
+        Runs an epoch and saves the parameters in a log
+
+        :param sample_batch: A batch of input/label samples for training
+        """
+        loss = super().run_epoch(sample_batch)
+
+        self.iteration += 1
+
+        return loss
