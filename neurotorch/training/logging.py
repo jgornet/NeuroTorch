@@ -41,6 +41,19 @@ class LossWriter(TrainerDecorator):
         self.train_writer.add_scalar("Time", duration, iteration)
         self.train_writer.add_scalar("Loss", loss, iteration)
 
+    def evaluate(self, batch):
+        start = time.time()
+        loss, accuracy, output = super().evaluate(batch)
+        end = time.time()
+
+        duration = end - start
+
+        self.validation_writer.add_scalar("Time", duration, self.iteration)
+        self.validation_writer.add_scalar("Loss", loss, self.iteration)
+        self.validation_writer.add_scalar("Accuracy", accuracy, self.iteration)
+
+        return loss, accuracy, output
+
     def run_epoch(self, sample_batch):
         """
         Runs an epoch and saves the parameters onto the Tensorboard log
@@ -88,6 +101,20 @@ class TrainingLogger(TrainerDecorator):
         self.logger.addHandler(console_handler)
 
         self.iteration = 0
+
+    def evaluate(self, batch):
+        start = time.time()
+        loss, accuracy, output = super().evaluate(batch)
+        end = time.time()
+
+        duration = end - start
+
+        self.logger.info("Iteration: {}, Accuracy: {}, Loss: {}, Time: {}".format(self.iteration,
+                                                                                  accuracy,
+                                                                                  loss,
+                                                                                  duration))
+
+        return loss, accuracy, output
 
     def run_epoch(self, sample_batch):
         """
