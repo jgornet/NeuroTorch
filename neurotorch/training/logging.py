@@ -1,4 +1,5 @@
 from neurotorch.core.trainer import TrainerDecorator
+from torchvision import make_grid
 import tensorboardX
 import os
 import logging
@@ -134,3 +135,37 @@ class TrainingLogger(TrainerDecorator):
                                                                     duration))
 
         return loss
+
+class ImageWriter(TrainerDecorator):
+    """
+    Write the image of each validation to a Tensorboard log
+    """
+    def __init__(self, trainer, logger_dir, experiment_name):
+        """
+        Initializes the Tensorboard writer
+
+        :param trainer: Trainer object that the class wraps
+        :param logger_dir: Directory to save Tensorboard logs
+        :param experiment_name: The name to mark the experiment
+        """
+        if not os.path.isdir(logger_dir):
+            raise IOError("{} is not a valid directory".format(logger_dir))
+
+        super().__init__(trainer)
+        experiment_dir = os.path.join(logger_dir, experiment_name)
+        os.mkdir(experiment_dir)
+        self.image_writer = tensorboardX.SummaryWriter(os.path.join(experiment_dir,
+                                                       "validation_image"))
+
+        self.iteration = 0
+
+    def evaluate(self, batch):
+        loss, accuracy, output = super().evaluate(batch)
+        inputs = make_grid(np.amax(sample_batch[0], axis=1, keepdims=True))
+        labels = make_grid(np.amax(sample_batch[1], axis=1, keepdims=True))
+        prediction = make_grid(np.amax(1/(1 + exp(-output)), axis=1, keepdims=True))
+        self.image_writer.add_image("input_image", inputs, self.iteration)
+        self.image_writer.add_image("label_image", labels, self.iteration)
+        self.image_writer.add_image("prediction_image", prediction, self.iteration)
+
+        return loss, accuracy, output
