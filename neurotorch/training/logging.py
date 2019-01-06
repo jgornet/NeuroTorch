@@ -1,9 +1,10 @@
 from neurotorch.core.trainer import TrainerDecorator
-from torchvision import make_grid
+from torchvision.utils import make_grid
 import tensorboardX
 import os
 import logging
 import time
+import numpy as np
 
 
 class LossWriter(TrainerDecorator):
@@ -23,7 +24,7 @@ class LossWriter(TrainerDecorator):
 
         super().__init__(trainer)
         experiment_dir = os.path.join(logger_dir, experiment_name)
-        os.mkdir(experiment_dir)
+        os.makedirs(experiment_dir, exist_ok=True)
         self.train_writer = tensorboardX.SummaryWriter(os.path.join(experiment_dir,
                                                        "train_log"))
         self.validation_writer = tensorboardX.SummaryWriter(os.path.join(experiment_dir,
@@ -51,7 +52,7 @@ class LossWriter(TrainerDecorator):
 
         self.validation_writer.add_scalar("Time", duration, self.iteration)
         self.validation_writer.add_scalar("Loss", loss, self.iteration)
-        self.validation_writer.add_scalar("Accuracy", accuracy, self.iteration)
+        self.validation_writer.add_scalar("Accuracy", accuracy*100, self.iteration)
 
         return loss, accuracy, output
 
@@ -111,7 +112,7 @@ class TrainingLogger(TrainerDecorator):
         duration = end - start
 
         self.logger.info("Iteration: {}, Accuracy: {}, Loss: {}, Time: {}".format(self.iteration,
-                                                                                  accuracy,
+                                                                                  accuracy * 100,
                                                                                   loss,
                                                                                   duration))
 
