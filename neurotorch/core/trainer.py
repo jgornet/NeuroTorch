@@ -128,14 +128,16 @@ class TrainerDecorator(Trainer):
     A wrapper class to a features for training
     """
     def __init__(self, trainer):
-        if isinstance(trainer, TrainerDecorator):
-            self._trainer = trainer._trainer
-        if isinstance(trainer, Trainer):
-            self._trainer = trainer
-        else:
-            error_string = ("trainer must be a Trainer or TrainerDecorator " +
-                            "instead it has type {}".format(type(trainer)))
-            raise ValueError(error_string)
+        self.setTrainer(trainer)
+
+    def setTrainer(self, trainer):
+        self._trainer = trainer
+
+    def getTrainer(self):
+        if isinstance(self._trainer, TrainerDecorator) or issubclass(type(self._trainer), TrainerDecorator):
+            return self._trainer._trainer
+        if isinstance(self._trainer, Trainer):
+            return self._trainer
 
     def run_epoch(self, sample_batch):
         return self._trainer.run_epoch(sample_batch)
@@ -151,34 +153,34 @@ class TrainerDecorator(Trainer):
         num_iter = 1
 
         validation_split = 0.2
-        random_idx = np.random.choice(len(self._trainer.volume), size=len(self._trainer.volume))
-        train_idx = random_idx[:int(len(self._trainer.volume)*(1-validation_split))].copy()
-        val_idx = random_idx[int(len(self._trainer.volume)*validation_split):].copy()
+        random_idx = np.random.choice(len(self.getTrainer().volume), size=len(self.getTrainer().volume))
+        train_idx = random_idx[:int(len(self.getTrainer().volume)*(1-validation_split))].copy()
+        val_idx = random_idx[int(len(self.getTrainer().volume)*validation_split):].copy()
 
         train_idx = train_idx[:(len(train_idx) - len(train_idx) % 8)]
         train_idx = train_idx.reshape((-1, 8))
 
-        while num_epoch <= self._trainer.max_epochs:
+        while num_epoch <= self.getTrainer().max_epochs:
             np.random.shuffle(train_idx)
             for i in range(train_idx.shape[0]):
-                sample_batch = list(zip(*[self._trainer.volume[idx] for idx in train_idx[i]]))
+                sample_batch = list(zip(*[self.getTrainer().volume[idx] for idx in train_idx[i]]))
                 sample_batch = [np.stack(batch) for batch in sample_batch]
-                if num_epoch > self._trainer.max_epochs:
+                if num_epoch > self.getTrainer().max_epochs:
                     break
-                if (sample_batch[1] > 0).any():
+                if (sample_batch[1] == 0).all():
                     continue
 
                 print("Iteration: {}".format(num_iter))
                 self.run_epoch([torch.from_numpy(batch) for batch in sample_batch])
 
                 if num_iter % 10 == 0:
-                    val_batch = list(zip(*[self._trainer.volume[idx]
-                                           for idx in val_idx[:2]]))
+                    val_batch = list(zip(*[self.getTrainer().volume[idx]
+                                           for idx in val_idx[:1]]))
                     val_batch = [np.stack(batch) for batch in val_batch]
                     loss, accuracy, _ = self.evaluate([torch.from_numpy(batch) for batch in val_batch])
                     print("Iteration: {}".format(num_iter),
                           "Epoch {}/{} ".format(num_epoch,
-                                                self._trainer.max_epochs),
+                                                self.getTrainer().max_epochs),
                           "Loss: {:.4f}".format(loss),
                           "Accuracy: {:.2f}".format(accuracy*100))
 
