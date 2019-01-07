@@ -135,7 +135,7 @@ class TrainerDecorator(Trainer):
 
     def getTrainer(self):
         if isinstance(self._trainer, TrainerDecorator) or issubclass(type(self._trainer), TrainerDecorator):
-            return self._trainer._trainer
+            return self._trainer.getTrainer()
         if isinstance(self._trainer, Trainer):
             return self._trainer
 
