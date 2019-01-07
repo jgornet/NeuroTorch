@@ -163,7 +163,7 @@ class ImageWriter(TrainerDecorator):
     def evaluate(self, batch):
         loss, accuracy, output = super().evaluate(batch)
         inputs = np.amax(batch[0].cpu().numpy(), axis=2).astype(np.float)
-        inputs = inputs * 0.95 / (np.max(inputs) - np.min(inputs))
+        inputs = inputs * 0.90 / (np.max(inputs) - np.min(inputs))
         labels = np.amax(batch[1].cpu().numpy(), axis=2)
         prediction = np.amax(1/(1 + np.exp(-output[0])), axis=2)
         self.image_writer.add_image("input_image", inputs[0], self.iteration)
