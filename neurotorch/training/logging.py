@@ -1,5 +1,4 @@
 from neurotorch.core.trainer import TrainerDecorator
-from torchvision.utils import make_grid
 import tensorboardX
 import os
 import logging
