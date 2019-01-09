@@ -569,11 +569,11 @@ class PooledVolume(Volume):
 
     def setStack(self, stack_size: int=5):
         self.stack = []
-        self.stack_size = 5
+        self.stack_size = stack_size
 
     def _pushStack(self, index, volume):
         if len(self.stack) >= self.stack_size:
-            self.stack[0].__exit__(None, None, None)
+            self.stack[0][1].__exit__(None, None, None)
             self.stack.pop(0)
 
         pos = len(self.stack)
