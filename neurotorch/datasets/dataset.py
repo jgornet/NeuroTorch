@@ -384,8 +384,11 @@ class Volume:
         if not isinstance(stride, Vector):
             raise ValueError("stride must have type Vector")
 
-        if not iteration_size.isSubset(self.getBoundingBox()):
-            raise ValueError("iteration_size must be smaller than volume size")
+        if not iteration_size.isSubset(BoundingBox(Vector(0, 0, 0),
+                                                   self.getBoundingBox().getSize())):
+            raise ValueError("iteration_size must be smaller than volume size " +
+                             "instead the iteration size is {} ".format(iteration_size.getSize()) +
+                             "and the volume size is {}".format(self.getBoundingBox().getSize()))
 
         self.setIterationSize(iteration_size)
         self.setStride(stride)
