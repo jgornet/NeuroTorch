@@ -15,7 +15,7 @@ IMAGE_PATH = "./tests/images/"
 class TestAugmentations(unittest.TestCase):
     def test_brightness(self):
         input_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "sample_volume.tif"),
+                                                "inputs.tif"),
                                    BoundingBox(Vector(0, 0, 0),
                                                Vector(1024, 512, 50)))
         label_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -37,7 +37,7 @@ class TestAugmentations(unittest.TestCase):
 
     def test_occlusion(self):
         input_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "sample_volume.tif"),
+                                                "inputs.tif"),
                                    BoundingBox(Vector(0, 0, 0),
                                                Vector(1024, 512, 50)))
         label_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -59,7 +59,7 @@ class TestAugmentations(unittest.TestCase):
 
     def test_duplication(self):
         input_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                "sample_volume.tif"),
+                                                "inputs.tif"),
                                    BoundingBox(Vector(0, 0, 0),
                                                Vector(1024, 512, 50)))
         
