@@ -24,7 +24,7 @@ class TestTrainer(unittest.TestCase):
     def test_gpu_training(self):
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                 "sample_volume.tif"),
+                                                 "inputs.tif"),
                                     BoundingBox(Vector(0, 0, 0),
                                                 Vector(1024, 512, 50)))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -41,7 +41,7 @@ class TestTrainer(unittest.TestCase):
     def test_cpu_training(self):
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                 "sample_volume.tif"),
+                                                 "inputs.tif"),
                                     BoundingBox(Vector(0, 0, 0),
                                                 Vector(1024, 512, 50)))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -60,7 +60,7 @@ class TestTrainer(unittest.TestCase):
 
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                 "sample_volume.tif"),
+                                                 "inputs.tif"),
                                     BoundingBox(Vector(0, 0, 0),
                                                 Vector(1024, 512, 50)))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -77,7 +77,7 @@ class TestTrainer(unittest.TestCase):
     def test_training_logger(self):
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                 "sample_volume.tif"),
+                                                 "inputs.tif"),
                                     BoundingBox(Vector(0, 0, 0),
                                                 Vector(1024, 512, 50)))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -97,7 +97,7 @@ class TestTrainer(unittest.TestCase):
 
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                 "sample_volume.tif"),
+                                                 "inputs.tif"),
                                     BoundingBox(Vector(0, 0, 0),
                                                 Vector(1024, 512, 50)))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -120,7 +120,7 @@ class TestTrainer(unittest.TestCase):
     def test_loss(self):
         net = RSUNet()
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                 "sample_volume.tif"),
+                                                 "inputs.tif"),
                                     BoundingBox(Vector(0, 0, 0),
                                                 Vector(1024, 512, 50)))
         labels_dataset = TiffVolume(os.path.join(IMAGE_PATH,
@@ -142,7 +142,7 @@ class TestTrainer(unittest.TestCase):
 
         checkpoint = './tests/checkpoints/iteration_10.ckpt'
         inputs_dataset = TiffVolume(os.path.join(IMAGE_PATH,
-                                                 "sample_volume.tif"),
+                                                 "inputs.tif"),
                                     BoundingBox(Vector(0, 0, 0),
                                                 Vector(1024, 512, 50)))
         inputs_dataset.__enter__()

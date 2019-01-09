@@ -267,7 +267,8 @@ origin
         if not isinstance(stride, Vector):
             raise ValueError("stride must have type Vector")
 
-        if not iteration_size.isSubset(self.getBoundingBox()):
+        if not iteration_size.isSubset(BoundingBox(Vector(0, 0, 0),
+                                                   self.getBoundingBox().getSize())):
             raise ValueError("iteration_size must be smaller than volume size")
 
         self.setIterationSize(iteration_size)
@@ -277,8 +278,8 @@ origin
             return int(round(x))
 
         self.element_vec = Vector(*map(lambda L, l, s: ceil((L-l)/s+1),
-                                       self.getBoundingBox().getEdges()[1].getComponents(),
-                                       self.iteration_size.getEdges()[1].getComponents(),
+                                       self.getBoundingBox().getSize().getComponents(),
+                                       self.iteration_size.getSize().getComponents(),
                                        self.stride.getComponents()))
 
         self.index = 0
@@ -356,8 +357,7 @@ class Volume:
                                                          Vector(128, 128, 20)),
                  stride: Vector=Vector(64, 64, 10)):
         self.setBoundingBox(bounding_box)
-        self.setIterationSize(iteration_size)
-        self.setStride(stride)
+        self.setIteration(iteration_size, stride)
 
     def setArray(self, array: Array):
         self.array = array
@@ -375,9 +375,33 @@ class Volume:
         self.getArray().blend(data)
 
     def setIteration(self, iteration_size: BoundingBox, stride: Vector):
-        self.getArray().setIteration(iteration_size, stride)
+        if not isinstance(iteration_size, BoundingBox):
+            error_string = ("iteration_size must have type BoundingBox"
+                            + " instead it has type {}")
+            error_string = error_string.format(type(iteration_size))
+            raise ValueError(error_string)
+
+        if not isinstance(stride, Vector):
+            raise ValueError("stride must have type Vector")
+
+        if not iteration_size.isSubset(BoundingBox(Vector(0, 0, 0),
+                                                   self.getBoundingBox().getSize())):
+            raise ValueError("iteration_size must be smaller than volume size " +
+                             "instead the iteration size is {} ".format(iteration_size.getSize()) +
+                             "and the volume size is {}".format(self.getBoundingBox().getSize()))
+
         self.setIterationSize(iteration_size)
         self.setStride(stride)
+
+        def ceil(x):
+            return int(round(x))
+
+        self.element_vec = Vector(*map(lambda L, l, s: ceil((L-l)/s+1),
+                                       self.getBoundingBox().getSize().getComponents(),
+                                       self.iteration_size.getSize().getComponents(),
+                                       self.stride.getComponents()))
+
+        self.index = 0
 
     def setBoundingBox(self, bounding_box):
         if not isinstance(bounding_box, BoundingBox):
@@ -453,7 +477,7 @@ given data.
 
         :return: The dataset length
         """
-        return len(self.getArray())
+        return self.element_vec[0]*self.element_vec[1]*self.element_vec[2]
 
     def __getitem__(self, idx: int):
         """
@@ -527,7 +551,10 @@ class AlignedVolume(Array):
 
 
 class PooledVolume(Volume):
-    def __init__(self, volumes=None, stack_size: int=5):
+    def __init__(self, volumes=None, stack_size: int=5,
+                 iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
+                                                         Vector(128, 128, 20)),
+                 stride: Vector=Vector(64, 64, 10)):
         if volumes is not None:
             self.volumes = volumes
             self.volumes_changed = True
@@ -538,13 +565,15 @@ class PooledVolume(Volume):
         self.volume_list = []
         self.setStack(stack_size)
 
+        self.setIteration(iteration_size, stride)
+
     def setStack(self, stack_size: int=5):
         self.stack = []
-        self.stack_size = 5
+        self.stack_size = stack_size
 
     def _pushStack(self, index, volume):
         if len(self.stack) >= self.stack_size:
-            self.stack[0].__exit__(None, None, None)
+            self.stack[0][1].__exit__(None, None, None)
             self.stack.pop(0)
 
         pos = len(self.stack)
@@ -557,6 +586,8 @@ class PooledVolume(Volume):
                       for volume in self.volumes]
 
         self.edge1_list = KDTree(edge1_list)
+
+        self.__len__()
 
         self.volumes_changed = False
 
@@ -600,7 +631,11 @@ class PooledVolume(Volume):
 
         if len(data) > 1:
             shape = bounding_box.getNumpyDim()
-            array = Array(np.zeros(shape).astype(np.uint16), bounding_box=bounding_box)
+            array = Array(np.zeros(shape).astype(np.uint16),
+                          bounding_box=bounding_box,
+                          iteration_size=BoundingBox(Vector(0, 0, 0),
+                                                     bounding_box.getSize()),
+                          stride=bounding_box.getSize())
             [array.set(item) for item in data]
             return Data(array.getArray(), bounding_box)
         else:
@@ -626,19 +661,39 @@ class PooledVolume(Volume):
 
     def __len__(self) -> int:
         if self.volumes_changed:
-            self.volume_index = map(lambda volume: len(volume), self.volumes)
-            for index, length in enumerate(self.volume_index):
-                if index > 0:
-                    self.volume_index[index] += self.volume_index[index-1]
-            self.length = reduce(lambda x, y: x + y, self.length_list)
+            self.volume_index = [0]
+            for volume in self.volumes:
+                self.volume_index.append(self.volume_index[-1] + len(volume))
+            self.length = self.volume_index[-1]
 
         return self.length
 
     def __getitem__(self, idx: int) -> Data:
-        index = 0
-        while self.volume_index[index] < idx:
-            index += 1
-        index += -1
+        if self.volumes_changed:
+            len(self)
+
+        if idx >= len(self):
+            self.index = 0
+            raise StopIteration
+
+        index = max(filter(lambda index: self.volume_index[index] <= idx,
+                           range(len(self.volume_index))))
+        volume = self.volumes[index]
         _idx = idx-self.volume_index[index]
 
-        return self.volumes[index][_idx]
+        element_vec = np.unravel_index(_idx,
+                                       dims=volume.element_vec.getComponents())
+
+        element_vec = Vector(*element_vec)
+        bounding_box = volume.iteration_size+volume.stride*element_vec \
+                       + volume.getBoundingBox().getEdges()[0]
+        result = self.get(bounding_box)
+
+        return result
+
+    def setIteration(self, iteration_size: BoundingBox, stride: Vector):
+        for volume in self.volume_list:
+            volume.setIteration(iteration_size, stride)
+
+        self.setIterationSize(iteration_size)
+        self.setStride(stride)
