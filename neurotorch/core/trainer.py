@@ -165,6 +165,7 @@ class TrainerDecorator(Trainer):
             for i in range(train_idx.shape[0]):
                 sample_batch = list(zip(*[self.getTrainer().volume[idx] for idx in train_idx[i]]))
                 sample_batch = [np.stack(batch) for batch in sample_batch]
+                sample_batch[1] = sample_batch[1] > 0
                 if num_epoch > self.getTrainer().max_epochs:
                     break
                 if (sample_batch[1] == 0).all():
@@ -177,6 +178,7 @@ class TrainerDecorator(Trainer):
                     val_batch = list(zip(*[self.getTrainer().volume[idx]
                                            for idx in val_idx[:1]]))
                     val_batch = [np.stack(batch) for batch in val_batch]
+                    val_batch[1] = val_batch[1] > 0
                     loss, accuracy, _ = self.evaluate([torch.from_numpy(batch) for batch in val_batch])
                     print("Iteration: {}".format(num_iter),
                           "Epoch {}/{} ".format(num_epoch,
