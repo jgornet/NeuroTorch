@@ -11,7 +11,8 @@ import argparse
 def spec_parser(filename, directory):
     volume_list = os.listdir(directory)
     volume_list = filter(lambda f: fnmatch(f, '*.tif'), volume_list)
-    volume_list = list(map(lambda f: os.path.join(directory, f), volume_list))
+    volume_list = list(map(lambda f: os.path.join(os.path.abspath(directory), f),
+                           volume_list))
 
     spec = []
     for volume in volume_list:
@@ -28,6 +29,7 @@ def spec_parser(filename, directory):
         spec.append(volume_spec)
 
     with open(filename, 'w') as f:
+        spec.sort(key=lambda volume: volume["filename"])
         f.write(json.dumps(spec, indent=2))
 
 def parse_arguments():
