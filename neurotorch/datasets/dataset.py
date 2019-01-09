@@ -685,7 +685,8 @@ class PooledVolume(Volume):
                                        dims=volume.element_vec.getComponents())
 
         element_vec = Vector(*element_vec)
-        bounding_box = volume.iteration_size+volume.stride*element_vec
+        bounding_box = volume.iteration_size+volume.stride*element_vec \
+                       + volume.getBoundingBox().getEdges()[0]
         result = self.get(bounding_box)
 
         return result
