@@ -70,7 +70,8 @@ class LossWriter(TrainerDecorator):
 
         self.iteration += 1
 
-        self.log_loss(loss, duration, self.iteration)
+        if self.iteration % 10 == 0:
+            self.log_loss(loss, duration, self.iteration)
 
         return loss
 
