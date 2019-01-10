@@ -97,24 +97,37 @@ class Trainer(object):
         num_epoch = 1
         num_iter = 1
 
-        while num_epoch <= self.max_epochs:
+        validation_split = 0.2
+        random_idx = np.random.choice(len(self.getTrainer().volume), size=len(self.getTrainer().volume))
+        train_idx = random_idx[:int(len(self.getTrainer().volume)*(1-validation_split))].copy()
+        val_idx = random_idx[int(len(self.getTrainer().volume)*validation_split):].copy()
+
+        train_idx = train_idx[:(len(train_idx) - len(train_idx) % 8)]
+        train_idx = train_idx.reshape((-1, 8))
+
+        while num_epoch <= self.getTrainer().max_epochs:
+            np.random.shuffle(train_idx)
             for i in range(train_idx.shape[0]):
-                sample_batch = list(zip(*[self.volume[idx] for idx in train_idx[i]]))
-                sample_batch = [torch.from_numpy(np.concatenate(batch)) for batch in sample_batch]
-                if num_epoch > self.max_epochs:
+                sample_batch = list(zip(*[self.getTrainer().volume[idx] for idx in train_idx[i]]))
+                sample_batch = [np.stack(batch) for batch in sample_batch]
+                sample_batch[1] = sample_batch[1] > 0
+                if num_epoch > self.getTrainer().max_epochs:
                     break
-                if (torch.sum(sample_batch[1]) / sample_batch[1].size()) < 0.25:
+                if (sample_batch[1] == 0).all():
                     continue
 
-                self.run_epoch(sample_batch)
+                print("Iteration: {}".format(num_iter))
+                self.run_epoch([torch.from_numpy(batch) for batch in sample_batch])
 
-                if num_iter % 100 == 0:
-                    val_batch = list(zip(*[self.volume[idx] for idx in val_idx[0]]))
-                    val_batch = [torch.from_numpy(np.concatenate(batch)) for batch in val_batch]
-                    loss, accuracy, _ = self.evaluate(val_idx[0])
+                if num_iter % 10 == 0:
+                    val_batch = list(zip(*[self.getTrainer().volume[idx]
+                                           for idx in val_idx[:1]]))
+                    val_batch = [np.stack(batch) for batch in val_batch]
+                    val_batch[1] = val_batch[1] > 0 
+                    loss, accuracy, _ = self.evaluate([torch.from_numpy(batch) for batch in val_batch])
                     print("Iteration: {}".format(num_iter),
                           "Epoch {}/{} ".format(num_epoch,
-                                                self.max_epochs),
+                                                self.getTrainer().max_epochs),
                           "Loss: {:.4f}".format(loss),
                           "Accuracy: {:.2f}".format(accuracy*100))
 
