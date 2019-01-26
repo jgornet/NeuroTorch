@@ -384,8 +384,11 @@ class Volume:
         if not isinstance(stride, Vector):
             raise ValueError("stride must have type Vector")
 
-        if not iteration_size.isSubset(self.getBoundingBox()):
-            raise ValueError("iteration_size must be smaller than volume size")
+        if not iteration_size.isSubset(BoundingBox(Vector(0, 0, 0),
+                                                   self.getBoundingBox().getSize())):
+            raise ValueError("iteration_size must be smaller than volume size " +
+                             "instead the iteration size is {} ".format(iteration_size.getSize()) +
+                             "and the volume size is {}".format(self.getBoundingBox().getSize()))
 
         self.setIterationSize(iteration_size)
         self.setStride(stride)
@@ -566,11 +569,11 @@ class PooledVolume(Volume):
 
     def setStack(self, stack_size: int=5):
         self.stack = []
-        self.stack_size = 5
+        self.stack_size = stack_size
 
     def _pushStack(self, index, volume):
         if len(self.stack) >= self.stack_size:
-            self.stack[0].__exit__(None, None, None)
+            self.stack[0][1].__exit__(None, None, None)
             self.stack.pop(0)
 
         pos = len(self.stack)
@@ -682,7 +685,8 @@ class PooledVolume(Volume):
                                        dims=volume.element_vec.getComponents())
 
         element_vec = Vector(*element_vec)
-        bounding_box = volume.iteration_size+volume.stride*element_vec
+        bounding_box = volume.iteration_size+volume.stride*element_vec \
+                       + volume.getBoundingBox().getEdges()[0]
         result = self.get(bounding_box)
 
         return result

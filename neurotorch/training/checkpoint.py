@@ -22,8 +22,10 @@ class CheckpointWriter(TrainerDecorator):
 
         self.checkpoint_dir = checkpoint_dir
         self.checkpoint_period = checkpoint_period
+        self.max_accuracy = 0
 
         self.iteration = 1
+        print(self.getTrainer())
 
     def run_epoch(self, sample_batch):
         """
@@ -34,16 +36,25 @@ class CheckpointWriter(TrainerDecorator):
         loss = super().run_epoch(sample_batch)
 
         if self.iteration % self.checkpoint_period == 0:
-            self.save_checkpoint()
+            self.save_checkpoint("iteration_{}.ckpt".format(self.iteration))
 
         self.iteration += 1
 
         return loss
 
-    def save_checkpoint(self):
+    def evaluate(self, batch):
+        loss, accuracy, output = super().evaluate(batch)
+
+        if accuracy > self.max_accuracy:
+            self.max_accuracy = accuracy
+            self.save_checkpoint("best.ckpt")
+
+        return loss, accuracy, output
+
+    def save_checkpoint(self, checkpoint_name):
         """
         Saves a training checkpoint
         """
         checkpoint_filename = os.path.join(self.checkpoint_dir,
-                                           "iteration_{}.ckpt".format(self.iteration))
-        torch.save(self._trainer.net.state_dict(), checkpoint_filename)
+                                           checkpoint_name)
+        torch.save(self.getTrainer().net.state_dict(), checkpoint_filename)
