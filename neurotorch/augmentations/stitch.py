@@ -1,11 +1,12 @@
 from neurotorch.augmentations.augmentation import Augmentation
 from neurotorch.datasets.dataset import Data
+from neurotorch.datasets.datatypes import Vector, BoundingBox
 import random
 import numpy as np
 
 
 class Stitch(Augmentation):
-    def __init__(self, volume, max_error=2, **kwargs):
+    def __init__(self, volume, max_error=20, **kwargs):
         self.setMaxError(max_error)
         super().__init__(volume, **kwargs)
 
@@ -22,21 +23,26 @@ class Stitch(Augmentation):
         edge1, edge2 = bounding_box.getEdges()
         edge2 += Vector(20, error, 0)
         initial_bounding_box = BoundingBox(edge1, edge2)
+        print(bounding_box)
+        print(initial_bounding_box)
 
         # Get data
         raw_data = self.getInput(initial_bounding_box).getArray()
         label_data = self.getLabel(initial_bounding_box).getArray()
-        augmented_raw, augmented_label = self.duplication(raw_data, label_data,
+        print(raw_data.shape)
+        augmented_raw, augmented_label = self.stitch(raw_data, label_data,
                                                           location=location,
                                                           error=error)
 
         # Convert to the data format
         augmented_raw_data = Data(augmented_raw, bounding_box)
+        print(augmented_raw.shape)
+        print(augmented_label.shape)
         augmented_label_data = Data(augmented_label, bounding_box)
 
         return (augmented_raw_data, augmented_label_data)
 
-    def stitch(self, raw, label, location=20, error=3)
+    def stitch(self, raw, label, location=20, error=3):
         # Initialize distorted raw volume and label
         z_len, y_len, x_len = raw.shape
 
@@ -58,11 +64,15 @@ class Stitch(Augmentation):
         # Shear label
         fill_region = label[:, error//2:-error//2,
                             location-10:location+10]
-        fill_region = shear3d(fill_region, shear=error, axis=1)
+        fill_region = self.shear3d(fill_region, shear=error, axis=1)
+
         distorted_label[:, :, location-10:location+10] = fill_region
 
+        # Clip augmented raw volume and label
+        distorted_raw = distorted_raw[:, :, :-20]
+        distorted_label = distorted_label[:, :, :-20]
 
-        return augmented_raw_data, label_data
+        return distorted_raw, distorted_label
 
     def shear3d(self, volume, shear=20, axis=1):
         result = volume.copy()

@@ -33,6 +33,6 @@ class Blur(Augmentation):
         gaussian_raw = gaussian_raw + noise
         gaussian_raw = gaussian_raw.astype(raw.dtype)
 
-        augmented_raw_data = Data(guassian_raw, raw_data.getBoundingBox())
+        augmented_raw_data = Data(gaussian_raw, raw_data.getBoundingBox())
 
         return augmented_raw_data, label_data

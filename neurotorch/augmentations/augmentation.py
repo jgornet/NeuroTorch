@@ -2,7 +2,7 @@ from neurotorch.datasets.dataset import AlignedVolume
 from neurotorch.datasets.datatypes import Vector
 from abc import abstractmethod
 import numpy as np
-from random import 
+from random import random
 
 
 class Augmentation(AlignedVolume):

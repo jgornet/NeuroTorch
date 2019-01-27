@@ -2,6 +2,7 @@ from neurotorch.augmentations.augmentation import Augmentation
 from neurotorch.datasets.dataset import Data
 import random
 import numpy as np
+from scipy.ndimage.filters import convolve
 
 
 class Duplicate(Augmentation):
@@ -11,7 +12,7 @@ class Duplicate(Augmentation):
 
     def augment(self, bounding_box):
         slices = self.getSlices()
-        end = bounding_box.getSize().getComponents()[2]
+        end = bounding_box.getSize().getComponents()[0]
         location = random.randrange(end-slices)
 
         raw_data = self.getInput(bounding_box)

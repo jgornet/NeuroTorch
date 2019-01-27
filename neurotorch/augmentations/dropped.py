@@ -1,5 +1,6 @@
 from neurotorch.augmentations.augmentation import Augmentation
 from neurotorch.datasets.dataset import Data
+from neurotorch.datasets.datatypes import Vector, BoundingBox
 import random
 import numpy as np
 from scipy.ndimage import zoom
@@ -12,8 +13,9 @@ class Drop(Augmentation):
 
     def augment(self, bounding_box):
         # Get dropped slices and location
-        dropped_slices = random.randrange(self.max_slices)
-        location = random.randrange(bounding_box.getSize()[1])
+        dropped_slices = 2*random.randrange(1, self.max_slices//2)
+        location = random.randrange(dropped_slices,
+                                    bounding_box.getSize()[1]-dropped_slices)
 
         # Get enlarged bounding box
         edge1, edge2 = bounding_box.getEdges()
@@ -21,8 +23,8 @@ class Drop(Augmentation):
         initial_bounding_box = BoundingBox(edge1, edge2)
 
         # Get data
-        raw = self.getInput(initial_bounding_box).getArray()
-        label = self.getLabel(initial_bounding_box).getArray()
+        raw = self.getInput(initial_bounding_box)
+        label = self.getLabel(initial_bounding_box)
 
         # Augment Numpy arrays
         augmented_raw, augmented_label = self.drop(raw, label,
@@ -43,8 +45,10 @@ class Drop(Augmentation):
 
     def drop(self, raw_data, label_data, dropped_slices=1, location=0):
         # Initialize distorted raw volume and label
+        raw = raw_data.getArray()
+        label = label_data.getArray()
         distorted_raw = np.zeros((raw.shape[0], raw.shape[1]-dropped_slices, raw.shape[2]))
-        distorted_label = np.zeros((raw.shape[0], raw.shape[1]-dropped_slices, raw.shape[2]))
+        distorted_label = np.zeros((label.shape[0], label.shape[1]-dropped_slices, label.shape[2]))
 
         # Populate distorted raw volume and label
         distorted_raw[:, :location-dropped_slices//2, :] = raw[:, :location-dropped_slices//2, :]

@@ -4,7 +4,7 @@ import random
 
 
 class Brightness(Augmentation):
-    def __init__(self, volume, max_relative_brightness=0.05, **kwargs)
+    def __init__(self, volume, max_relative_brightness=0.05, **kwargs):
         self.setRelativeBrightness(max_relative_brightness)
         super().__init__(volume, **kwargs)
 
