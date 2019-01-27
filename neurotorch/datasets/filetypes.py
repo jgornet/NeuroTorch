@@ -33,6 +33,9 @@ containing TIFF files
     def getFile(self):
         return self.tiff_file
 
+    def get(self, bounding_box):
+        return self.getArray().get(bounding_box)
+
     def __enter__(self):
         if os.path.isfile(self.getFile()):
             try:
