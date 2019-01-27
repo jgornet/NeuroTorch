@@ -150,12 +150,12 @@ not exist, then the method raises a ValueError.
         array = self.getArray(sub_bounding_box)
 
         before_pad = bounding_box.getEdges()[0] - sub_bounding_box.getEdges()[0]
-        after_pad = sub_bounding_box.getEdges()[1] - bounding_box.getEdges()[1]
+        after_pad = bounding_box.getEdges()[1] - sub_bounding_box.getEdges()[1]
 
-        if before_pad != Vector(0, 0, 0) and after_pad != Vector(0, 0, 0):
-            pad_size = (before_pad.getComponents(),
-                        after_pad.getComponents())
-            array = np.pad(array, pad_size=pad_size, mode="constant")
+        if before_pad != Vector(0, 0, 0) or after_pad != Vector(0, 0, 0):
+            pad_size = tuple(zip(before_pad.getNumpyDim(),
+                                 after_pad.getNumpyDim()))
+            array = np.pad(array, pad_width=pad_size, mode="constant")
 
         return Data(array, bounding_box)
 
