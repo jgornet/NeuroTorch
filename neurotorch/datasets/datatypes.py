@@ -41,6 +41,14 @@ components
         """
         return len(self.getComponents())
 
+    def getNumpyDim(self) -> list:
+        """
+        Returns the size of the bounding box in row-major order (Z, Y, X)
+        :return: Size of the bounding box in row-major order (Z, Y, X)
+        :rtype: list
+        """
+        return self.getComponents()[::-1]
+
     def __getitem__(self, idx):
         if not isinstance(idx, int):
             raise IndexError("the index must be an positive integer")
