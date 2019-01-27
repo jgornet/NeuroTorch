@@ -60,7 +60,7 @@ components
     def __add__(self, other):
         if not isinstance(other, Vector):
             raise ValueError("other must be a vector instead"
-                             " it is ".format(type(other)))
+                             " it is {}".format(type(other)))
 
         if self.getDimension() != other.getDimension():
             raise ValueError("other must have the same dimension instead "
@@ -105,7 +105,7 @@ components
     def __eq__(self, other):
         if not isinstance(other, Vector):
             raise ValueError("other must be a vector instead"
-                             " it is ".format(type(other)))
+                             " it is {}".format(type(other)))
 
         if self.getDimension() != other.getDimension():
             raise ValueError("other must have the same dimension")
