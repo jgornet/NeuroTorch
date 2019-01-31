@@ -15,7 +15,7 @@ class Stitch(Augmentation):
 
     def augment(self, bounding_box):
         # Get error and location
-        error = random.randrange(self.max_error)
+        error = random.randrange(1, self.max_error)
         x_len = bounding_box.getSize()[0]
         location = random.randrange(10, x_len - 10)
 
@@ -23,21 +23,16 @@ class Stitch(Augmentation):
         edge1, edge2 = bounding_box.getEdges()
         edge2 += Vector(20, error, 0)
         initial_bounding_box = BoundingBox(edge1, edge2)
-        print(bounding_box)
-        print(initial_bounding_box)
 
         # Get data
-        raw_data = self.getInput(initial_bounding_box).getArray()
-        label_data = self.getLabel(initial_bounding_box).getArray()
-        print(raw_data.shape)
-        augmented_raw, augmented_label = self.stitch(raw_data, label_data,
-                                                          location=location,
-                                                          error=error)
+        raw_data, label_data = self.getParent().get(initial_bounding_box)
+        raw, label = (raw_data.getArray(), label_data.getArray())
+        augmented_raw, augmented_label = self.stitch(raw, label,
+                                                     location=location,
+                                                     error=error)
 
         # Convert to the data format
         augmented_raw_data = Data(augmented_raw, bounding_box)
-        print(augmented_raw.shape)
-        print(augmented_label.shape)
         augmented_label_data = Data(augmented_label, bounding_box)
 
         return (augmented_raw_data, augmented_label_data)
@@ -69,14 +64,14 @@ class Stitch(Augmentation):
         distorted_label[:, :, location-10:location+10] = fill_region
 
         # Clip augmented raw volume and label
-        distorted_raw = distorted_raw[:, :, :-20]
-        distorted_label = distorted_label[:, :, :-20]
+        distorted_raw = distorted_raw[:, :, :-20].astype(raw.dtype)
+        distorted_label = distorted_label[:, :, :-20].astype(label.dtype)
 
         return distorted_raw, distorted_label
 
     def shear3d(self, volume, shear=20, axis=1):
         result = volume.copy()
-        shift_list = np.around(np.linspace(-shear//2, shear//2, num=result.shape[2])).astype(np.int8)
+        shift_list = np.around(np.linspace(-shear//2, shear//2, num=result.shape[2])).astype(volume.dtype)
         for index, shift in enumerate(shift_list):
             result[:, :, index] = np.roll(result[:, :, index], shift, axis=axis)
 

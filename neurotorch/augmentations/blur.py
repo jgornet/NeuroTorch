@@ -12,8 +12,7 @@ class Blur(Augmentation):
         super().__init__(volume, **kwargs)
 
     def augment(self, bounding_box):
-        raw = self.getInput(bounding_box)
-        label = self.getLabel(bounding_box)
+        raw, label = self.getParent().get(bounding_box)
         augmented_raw, augmented_label = self.blur(raw, label, self.max_blur)
 
         return (augmented_raw, augmented_label)

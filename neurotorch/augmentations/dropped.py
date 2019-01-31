@@ -7,7 +7,7 @@ from scipy.ndimage import zoom
 
 
 class Drop(Augmentation):
-    def __init__(self, volume, max_slices=3, **kwargs):
+    def __init__(self, volume, max_slices=20, **kwargs):
         self.setMaxDroppedSlices(max_slices)
         super().__init__(volume, **kwargs)
 
@@ -23,8 +23,7 @@ class Drop(Augmentation):
         initial_bounding_box = BoundingBox(edge1, edge2)
 
         # Get data
-        raw = self.getInput(initial_bounding_box)
-        label = self.getLabel(initial_bounding_box)
+        raw, label = self.getParent().get(initial_bounding_box)
 
         # Augment Numpy arrays
         augmented_raw, augmented_label = self.drop(raw, label,

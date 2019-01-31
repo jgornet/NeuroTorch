@@ -6,7 +6,7 @@ from scipy.ndimage.filters import convolve
 
 
 class Duplicate(Augmentation):
-    def __init__(self, volume, max_slices=2, **kwargs):
+    def __init__(self, volume, max_slices=20, **kwargs):
         self.setMaxSlices(max_slices)
         super().__init__(volume, **kwargs)
 
@@ -15,8 +15,7 @@ class Duplicate(Augmentation):
         end = bounding_box.getSize().getComponents()[0]
         location = random.randrange(end-slices)
 
-        raw_data = self.getInput(bounding_box)
-        label_data = self.getLabel(bounding_box)
+        raw_data, label_data = self.getParent().get(bounding_box)
         augmented_raw, augmented_label = self.duplication(raw_data, label_data,
                                                           location=location,
                                                           slices=slices)
