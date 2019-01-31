@@ -12,7 +12,7 @@ class Trainer(object):
     """
     Trains a PyTorch neural network with a given input and label dataset
     """
-    def __init__(self, net, inputs_volume, labels_volume, checkpoint=None,
+    def __init__(self, net, aligned_volume, checkpoint=None,
                  optimizer=None, criterion=None, max_epochs=10,
                  gpu_device=None, validation_split=0.2):
         """
@@ -47,8 +47,7 @@ class Trainer(object):
             self.gpu_device = gpu_device
             self.useGpu = True
 
-        self.volume = TorchVolume(AlignedVolume((inputs_volume,
-                                                 labels_volume)))
+        self.volume = TorchVolume(aligned_volume)
 
     def run_epoch(self, sample_batch):
         """
@@ -185,19 +184,21 @@ class TrainerDecorator(Trainer):
                     continue
 
                 print("Iteration: {}".format(num_iter))
-                self.run_epoch([torch.from_numpy(batch) for batch in sample_batch])
+                self.run_epoch([torch.from_numpy(batch.astype(np.float)) for batch in sample_batch])
 
                 if num_iter % 10 == 0:
+                    self.getTrainer().volume.getVolume().setAugmentation(False)
                     val_batch = list(zip(*[self.getTrainer().volume[idx]
-                                           for idx in val_idx[:1]]))
+                                           for idx in val_idx[:8]]))
                     val_batch = [np.stack(batch) for batch in val_batch]
                     val_batch[1] = val_batch[1] > 0
-                    loss, accuracy, _ = self.evaluate([torch.from_numpy(batch) for batch in val_batch])
+                    loss, accuracy, _ = self.evaluate([torch.from_numpy(batch.astype(np.float)) for batch in val_batch])
                     print("Iteration: {}".format(num_iter),
                           "Epoch {}/{} ".format(num_epoch,
                                                 self.getTrainer().max_epochs),
                           "Loss: {:.4f}".format(loss),
                           "Accuracy: {:.2f}".format(accuracy*100))
+                    self.getTrainer().volume.getVolume().setAugmentation(True)
 
                 num_iter += 1
 
