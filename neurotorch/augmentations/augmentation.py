@@ -10,14 +10,21 @@ class Augmentation(AlignedVolume):
                  frequency=1.0):
         self.setFrequency(frequency)
         self.setVolume(aligned_volume)
+        self.setAugmentation(True)
         if iteration_size is None:
             iteration_size = self.getInputVolume().getIterationSize()
         if stride is None:
             stride = self.getInputVolume().getStride()
         self.setIteration(iteration_size, stride)
 
+    def setAugmentation(self, augment):
+        self.eval = augment
+
+    def getAugmentation(self):
+        return self.eval
+
     def get(self, bounding_box):
-        if random() < self.frequency:
+        if random() < self.frequency and self.getAugmentation():
             augmented_data = self.augment(bounding_box)
             return augmented_data
         else:
@@ -66,6 +73,16 @@ class Augmentation(AlignedVolume):
         self.aligned_volume = aligned_volume
 
     def getVolume(self):
+        if isinstance(self.aligned_volume, AlignedVolume):
+            return self.aligned_volume 
+        if isinstance(self.aligned_volume, Augmentation) or \
+           issubclass(type(self.aligned_volume), Augmentation):
+            return self.aligned_volume.getVolume()
+
+    def getVolumes(self):
+        return self.getVolume().getVolumes()
+
+    def getParent(self):
         return self.aligned_volume
 
     def __len__(self):
