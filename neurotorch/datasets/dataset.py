@@ -358,6 +358,7 @@ class Volume:
                  stride: Vector=Vector(64, 64, 10)):
         self.setBoundingBox(bounding_box)
         self.setIteration(iteration_size, stride)
+        self.valid_data = None
 
     def setArray(self, array: Array):
         self.array = array
@@ -508,6 +509,15 @@ given data.
         else:
             raise StopIteration
 
+    def getValidData(self):
+        if self.valid_data is not None:
+            self.valid_data = []
+            for i in range(len(self)):
+                if not (self[i].getArray() == 0).all():
+                    self.valid_data.append(i)
+
+        return self.valid_data
+
 
 class AlignedVolume(Array):
     def __init__(self, volumes, iteration_size=None, stride=None):
@@ -517,6 +527,7 @@ class AlignedVolume(Array):
             stride = volumes[0].getStride()
         self.setVolumes(volumes)
         self.setIteration(iteration_size, stride)
+        self.valid_data = None
 
     def getBoundingBox(self):
         return self.getVolumes()[0].getBoundingBox()
@@ -549,6 +560,15 @@ class AlignedVolume(Array):
         result = [volume[idx] for volume in self.getVolumes()]
         return result
 
+    def getValidData(self):
+        if self.valid_data is None:
+            self.valid_data = []
+            for i in range(len(self)):
+                if not (self.getVolumes()[1][i].getArray() == 0).all():
+                    self.valid_data.append(i)
+
+        return self.valid_data
+
 
 class PooledVolume(Volume):
     def __init__(self, volumes=None, stack_size: int=5,
@@ -566,6 +586,8 @@ class PooledVolume(Volume):
         self.setStack(stack_size)
 
         self.setIteration(iteration_size, stride)
+
+        self.valid_data = None
 
     def setStack(self, stack_size: int=5):
         self.stack = []
@@ -697,3 +719,12 @@ class PooledVolume(Volume):
 
         self.setIterationSize(iteration_size)
         self.setStride(stride)
+
+    def getValidData(self):
+        if self.valid_data is None:
+            self.valid_data = []
+            for i in range(len(self)):
+                if not (self[i].getArray() == 0).all():
+                    self.valid_data.append(i)
+
+        return self.valid_data
