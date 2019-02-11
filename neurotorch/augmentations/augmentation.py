@@ -38,18 +38,8 @@ class Augmentation(AlignedVolume):
         return self.getVolume().getBoundingBox()
 
     def setIteration(self, iteration_size, stride):
-        self.setIterationSize(iteration_size)
-        self.setStride(stride)
-
-        def ceil(x):
-            return int(round(x))
-
-        self.element_vec = Vector(*map(lambda L, l, s: ceil((L-l)/s+1),
-                                       self.getBoundingBox().getEdges()[1].getComponents(),
-                                       self.iteration_size.getEdges()[1].getComponents(),
-                                       self.stride.getComponents()))
-
-        self.index = 0
+        self.getParent().setIterationSize(iteration_size)
+        self.getParent().setStride(stride)
 
     def getInputVolume(self):
         return self.getVolume().getVolumes()[0]
@@ -58,10 +48,10 @@ class Augmentation(AlignedVolume):
         return self.getVolume().getVolumes()[1]
 
     def getInput(self, bounding_box):
-        return self.getInputVolume().request(bounding_box)
+        return self.getInputVolume().get(bounding_box)
 
     def getLabel(self, bounding_box):
-        return self.getLabelVolume().request(bounding_box)
+        return self.getLabelVolume().get(bounding_box)
 
     def setIterationSize(self, iteration_size):
         self.iteration_size = iteration_size
@@ -86,18 +76,10 @@ class Augmentation(AlignedVolume):
         return self.aligned_volume
 
     def __len__(self):
-        return self.element_vec[0]*self.element_vec[1]*self.element_vec[2]
+        return len(self.getParent())
 
     def __getitem__(self, idx):
-        if idx >= len(self):
-            self.index = 0
-            raise StopIteration
-
-        element_vec = np.unravel_index(idx,
-                                       dims=self.element_vec.getComponents())
-
-        element_vec = Vector(*element_vec)
-        bounding_box = self.iteration_size+self.stride*element_vec
+        bounding_box = self.getParent()._indexToBoundingBox(idx)
         result = self.get(bounding_box)
 
         return result
@@ -105,3 +87,6 @@ class Augmentation(AlignedVolume):
     @abstractmethod
     def augment(self, bounding_box):
         pass
+
+    def getValidData(self):
+        return self.getParent().getValidData()

@@ -15,7 +15,7 @@ class Stitch(Augmentation):
 
     def augment(self, bounding_box):
         # Get error and location
-        error = random.randrange(1, self.max_error)
+        error = random.randrange(2, self.max_error)
         x_len = bounding_box.getSize()[0]
         location = random.randrange(10, x_len - 10)
 
@@ -26,7 +26,7 @@ class Stitch(Augmentation):
 
         # Get data
         raw_data, label_data = self.getParent().get(initial_bounding_box)
-        raw, label = (raw_data.getArray(), label_data.getArray())
+        raw, label = (raw_data.getArray().copy(), label_data.getArray().copy())
         augmented_raw, augmented_label = self.stitch(raw, label,
                                                      location=location,
                                                      error=error)

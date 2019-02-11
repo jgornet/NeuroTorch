@@ -19,7 +19,7 @@ class Drop(Augmentation):
 
         # Get enlarged bounding box
         edge1, edge2 = bounding_box.getEdges()
-        edge2 += Vector(0, dropped_slices, 0)
+        edge2 = edge2 + Vector(0, dropped_slices, 0)
         initial_bounding_box = BoundingBox(edge1, edge2)
 
         # Get data
@@ -44,8 +44,8 @@ class Drop(Augmentation):
 
     def drop(self, raw_data, label_data, dropped_slices=1, location=0):
         # Initialize distorted raw volume and label
-        raw = raw_data.getArray()
-        label = label_data.getArray()
+        raw = raw_data.getArray().copy()
+        label = label_data.getArray().copy()
         distorted_raw = np.zeros((raw.shape[0], raw.shape[1]-dropped_slices, raw.shape[2]))
         distorted_label = np.zeros((label.shape[0], label.shape[1]-dropped_slices, label.shape[2]))
 

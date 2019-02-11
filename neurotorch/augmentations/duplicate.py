@@ -29,7 +29,7 @@ class Duplicate(Augmentation):
         return self.max_slices
 
     def getSlices(self):
-        return random.randrange(self.getMaxSlices())
+        return random.randrange(2, self.getMaxSlices())
 
     def duplication(self, raw_data, label_data, location=20, slices=3,
                     axis=0):
@@ -39,9 +39,9 @@ class Duplicate(Augmentation):
         noise = raw[:, :, location:location+slices]
         noise = noise - convolve(noise, weights=np.full((3, 3, 3), 1.0/27))
 
-        duplicate_slices = np.repeat(raw[:, :, location+slices//2].reshape(raw.shape[0],
-                                                                           raw.shape[1],
-                                                                           1),
+        duplicate_slices = np.repeat(raw[:, :, location].reshape(raw.shape[0],
+                                                                 raw.shape[1],
+                                                                 1),
                                      slices, axis=2)
         duplicate_slices += noise
         distorted_raw[:, :, location:location+slices] = duplicate_slices
