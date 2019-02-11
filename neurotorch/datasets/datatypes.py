@@ -41,6 +41,14 @@ components
         """
         return len(self.getComponents())
 
+    def getNumpyDim(self) -> list:
+        """
+        Returns the size of the bounding box in row-major order (Z, Y, X)
+        :return: Size of the bounding box in row-major order (Z, Y, X)
+        :rtype: list
+        """
+        return self.getComponents()[::-1]
+
     def __getitem__(self, idx):
         if not isinstance(idx, int):
             raise IndexError("the index must be an positive integer")
@@ -52,15 +60,15 @@ components
     def __add__(self, other):
         if not isinstance(other, Vector):
             raise ValueError("other must be a vector instead"
-                             " it is ".format(type(other)))
+                             " it is {}".format(type(other)))
 
         if self.getDimension() != other.getDimension():
             raise ValueError("other must have the same dimension instead "
                              + "self is {} and other is {}".format(self,
                                                                    other))
 
-        result = [s + o for s, o in zip(self.getComponents(),
-                                        other.getComponents())]
+        result = tuple(s + o for s, o in zip(self.getComponents(),
+                                             other.getComponents()))
 
         return Vector(*result)
 
@@ -97,7 +105,7 @@ components
     def __eq__(self, other):
         if not isinstance(other, Vector):
             raise ValueError("other must be a vector instead"
-                             " it is ".format(type(other)))
+                             " it is {}".format(type(other)))
 
         if self.getDimension() != other.getDimension():
             raise ValueError("other must have the same dimension")
