@@ -67,8 +67,8 @@ components
                              + "self is {} and other is {}".format(self,
                                                                    other))
 
-        result = [s + o for s, o in zip(self.getComponents(),
-                                        other.getComponents())]
+        result = tuple(s + o for s, o in zip(self.getComponents(),
+                                             other.getComponents()))
 
         return Vector(*result)
 
