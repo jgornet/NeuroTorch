@@ -11,8 +11,8 @@ import tifffile as tif
 class TiffVolume(Volume):
     def __init__(self, tiff_file, bounding_box: BoundingBox,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 20)),
-                 stride: Vector=Vector(64, 64, 10)):
+                                                         Vector(128, 128, 32)),
+                 stride: Vector=Vector(64, 64, 16)):
         """
         Loads a TIFF stack file or a directory of TIFF files and creates a
 corresponding three-dimensional volume dataset
@@ -39,6 +39,7 @@ containing TIFF files
     def __enter__(self):
         if os.path.isfile(self.getFile()):
             try:
+                print("Opening {}".format(self.getFile()))
                 array = tif.imread(self.getFile())
 
             except IOError:
@@ -65,6 +66,9 @@ containing TIFF files
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.setArray(None)
+
+    def _indexToBoundingBox(self, idx):
+        return self.getArray()._indexToBoundingBox(idx)
 
 
 class Hdf5Volume(Volume):
