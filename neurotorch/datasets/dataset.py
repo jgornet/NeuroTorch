@@ -106,8 +106,8 @@ class Array:
     """
     def __init__(self, array: np.ndarray, bounding_box: BoundingBox=None,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 20)),
-                 stride: Vector=Vector(64, 64, 10)):
+                                                         Vector(128, 128, 32)),
+                 stride: Vector=Vector(64, 64, 16)):
         """
         Initializes a volume with a bounding box and iteration parameters
 
@@ -301,6 +301,12 @@ origin
         return self.element_vec[0]*self.element_vec[1]*self.element_vec[2]
 
     def __getitem__(self, idx):
+        bounding_box = self._indexToBoundingBox(idx)
+        result = self.get(bounding_box)
+
+        return result
+
+    def _indexToBoundingBox(self, idx):
         if idx >= len(self):
             self.index = 0
             raise StopIteration
@@ -310,9 +316,8 @@ origin
 
         element_vec = Vector(*element_vec)
         bounding_box = self.iteration_size+self.stride*element_vec
-        result = self.get(bounding_box)
 
-        return result
+        return bounding_box
 
     def __enter__(self):
         pass
@@ -354,8 +359,8 @@ class Volume:
     """
     def __init__(self, bounding_box: BoundingBox=None,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 20)),
-                 stride: Vector=Vector(64, 64, 10)):
+                                                         Vector(128, 128, 32)),
+                 stride: Vector=Vector(64, 64, 16)):
         self.setBoundingBox(bounding_box)
         self.setIteration(iteration_size, stride)
         self.valid_data = None
@@ -519,7 +524,7 @@ given data.
         return self.valid_data
 
 
-class AlignedVolume(Array):
+class AlignedVolume(Volume):
     def __init__(self, volumes, iteration_size=None, stride=None):
         if iteration_size is None:
             iteration_size = volumes[0].getIterationSize()
@@ -569,12 +574,17 @@ class AlignedVolume(Array):
 
         return self.valid_data
 
+    def _indexToBoundingBox(self, idx):
+        bounding_box = self.getVolumes()[0]._indexToBoundingBox(idx)
+
+        return bounding_box
+
 
 class PooledVolume(Volume):
     def __init__(self, volumes=None, stack_size: int=5,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 20)),
-                 stride: Vector=Vector(64, 64, 10)):
+                                                         Vector(128, 128, 32)),
+                 stride: Vector=Vector(64, 64, 16)):
         if volumes is not None:
             self.volumes = volumes
             self.volumes_changed = True
@@ -589,7 +599,7 @@ class PooledVolume(Volume):
 
         self.valid_data = None
 
-    def setStack(self, stack_size: int=5):
+    def setStack(self, stack_size: int=15):
         self.stack = []
         self.stack_size = stack_size
 
@@ -642,26 +652,23 @@ class PooledVolume(Volume):
 
         for volume in stack_volumes:
             sub_bbox = bounding_box.intersect(volume.getBoundingBox())
-            data.append(volume.request(sub_bbox))
+            data.append(volume.get(sub_bbox))
 
         for index in stack_disjoint:
             volume = self.volumes[index]
             i = self._pushStack(index, volume)
 
             sub_bbox = bounding_box.intersect(volume.getBoundingBox())
-            data.append(volume.request(sub_bbox))
+            data.append(volume.get(sub_bbox))
 
-        if len(data) > 1:
-            shape = bounding_box.getNumpyDim()
-            array = Array(np.zeros(shape).astype(np.uint16),
-                          bounding_box=bounding_box,
-                          iteration_size=BoundingBox(Vector(0, 0, 0),
-                                                     bounding_box.getSize()),
-                          stride=bounding_box.getSize())
-            [array.set(item) for item in data]
-            return Data(array.getArray(), bounding_box)
-        else:
-            return data[0]
+        shape = bounding_box.getNumpyDim()
+        array = Array(np.zeros(shape).astype(np.uint16),
+                        bounding_box=bounding_box,
+                        iteration_size=BoundingBox(Vector(0, 0, 0),
+                                                    bounding_box.getSize()),
+                        stride=bounding_box.getSize())
+        [array.set(item) for item in data]
+        return Data(array.getArray(), bounding_box)
 
     def set(self, data: Data):
         indexes = self._queryBoundingBox(data.getBoundingBox())
@@ -691,6 +698,12 @@ class PooledVolume(Volume):
         return self.length
 
     def __getitem__(self, idx: int) -> Data:
+        bounding_box = self._indexToBoundingBox(idx)
+        result = self.get(bounding_box)
+
+        return result
+
+    def _indexToBoundingBox(self, idx: int) -> BoundingBox:
         if self.volumes_changed:
             len(self)
 
@@ -709,9 +722,8 @@ class PooledVolume(Volume):
         element_vec = Vector(*element_vec)
         bounding_box = volume.iteration_size+volume.stride*element_vec \
                        + volume.getBoundingBox().getEdges()[0]
-        result = self.get(bounding_box)
 
-        return result
+        return bounding_box
 
     def setIteration(self, iteration_size: BoundingBox, stride: Vector):
         for volume in self.volume_list:
