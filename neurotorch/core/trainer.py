@@ -1,5 +1,5 @@
 import tensorflow as tf
-from neurotorch.datasets.dataset import TorchVolume
+# from neurotorch.datasets.dataset import TorchVolume
 import numpy as np
 
 
@@ -129,73 +129,73 @@ class Trainer(object):
             num_epoch += 1
 
 
-class TrainerDecorator(Trainer):
-    """
-    A wrapper class to a features for training
-    """
-    def __init__(self, trainer):
-        self.setTrainer(trainer)
+# class TrainerDecorator(Trainer):
+#     """
+#     A wrapper class to a features for training
+#     """
+#     def __init__(self, trainer):
+#         self.setTrainer(trainer)
 
-    def setTrainer(self, trainer):
-        self._trainer = trainer
+#     def setTrainer(self, trainer):
+#         self._trainer = trainer
 
-    def getTrainer(self):
-        if isinstance(self._trainer, TrainerDecorator) or issubclass(type(self._trainer), TrainerDecorator):
-            return self._trainer.getTrainer()
-        if isinstance(self._trainer, Trainer):
-            return self._trainer
+#     def getTrainer(self):
+#         if isinstance(self._trainer, TrainerDecorator) or issubclass(type(self._trainer), TrainerDecorator):
+#             return self._trainer.getTrainer()
+#         if isinstance(self._trainer, Trainer):
+#             return self._trainer
 
-    def run_epoch(self, sample_batch):
-        return self._trainer.run_epoch(sample_batch)
+#     def run_epoch(self, sample_batch):
+#         return self._trainer.run_epoch(sample_batch)
 
-    def evaluate(self, batch):
-        return self._trainer.evaluate(batch)
+#     def evaluate(self, batch):
+#         return self._trainer.evaluate(batch)
 
-    def run_training(self):
-        """
-        Trains the given neural network
-        """
-        num_epoch = 1
-        num_iter = 1
+#     def run_training(self):
+#         """
+#         Trains the given neural network
+#         """
+#         num_epoch = 1
+#         num_iter = 1
 
-        validation_split = 0.2
-        valid_indexes = self.getTrainer().volume.getVolume().getValidData()
-        random_idx = np.random.permutation(valid_indexes)
-        train_idx = random_idx[:int(len(valid_indexes)*(1-validation_split))].copy()
-        val_idx = random_idx[int(len(valid_indexes)*validation_split):].copy()
+#         validation_split = 0.2
+#         valid_indexes = self.getTrainer().volume.getVolume().getValidData()
+#         random_idx = np.random.permutation(valid_indexes)
+#         train_idx = random_idx[:int(len(valid_indexes)*(1-validation_split))].copy()
+#         val_idx = random_idx[int(len(valid_indexes)*validation_split):].copy()
 
-        train_idx = train_idx[:(len(train_idx) - len(train_idx) % 8)]
-        train_idx = train_idx.reshape((-1, 8))
+#         train_idx = train_idx[:(len(train_idx) - len(train_idx) % 8)]
+#         train_idx = train_idx.reshape((-1, 8))
 
-        while num_epoch <= self.getTrainer().max_epochs:
-            np.random.shuffle(train_idx)
-            for i in range(train_idx.shape[0]):
-                sample_batch = list(zip(*[self.getTrainer().volume[idx] for idx in train_idx[i]]))
-                sample_batch = [np.stack(batch) for batch in sample_batch]
-                sample_batch[1] = sample_batch[1] > 0
-                if num_epoch > self.getTrainer().max_epochs:
-                    break
+#         while num_epoch <= self.getTrainer().max_epochs:
+#             np.random.shuffle(train_idx)
+#             for i in range(train_idx.shape[0]):
+#                 sample_batch = list(zip(*[self.getTrainer().volume[idx] for idx in train_idx[i]]))
+#                 sample_batch = [np.stack(batch) for batch in sample_batch]
+#                 sample_batch[1] = sample_batch[1] > 0
+#                 if num_epoch > self.getTrainer().max_epochs:
+#                     break
 
-                print("Iteration: {}".format(num_iter))
-                self.run_epoch([torch.from_numpy(batch.astype(np.float)) for batch in sample_batch])
+#                 print("Iteration: {}".format(num_iter))
+#                 self.run_epoch([torch.from_numpy(batch.astype(np.float)) for batch in sample_batch])
 
-                if num_iter % 10 == 0:
-                    self.getTrainer().volume.getVolume().setAugmentation(False)
-                    val_batch = list(zip(*[self.getTrainer().volume[idx]
-                                           for idx in val_idx[:16]]))
-                    val_batch = [np.stack(batch) for batch in val_batch]
-                    val_batch[1] = val_batch[1] > 0
-                    loss, accuracy, _ = self.evaluate([torch.from_numpy(batch.astype(np.float)) for batch in val_batch])
-                    print("Iteration: {}".format(num_iter),
-                          "Epoch {}/{} ".format(num_epoch,
-                                                self.getTrainer().max_epochs),
-                          "Loss: {:.4f}".format(loss),
-                          "Accuracy: {:.2f}".format(accuracy*100))
-                    self.getTrainer().volume.getVolume().setAugmentation(True)
+#                 if num_iter % 10 == 0:
+#                     self.getTrainer().volume.getVolume().setAugmentation(False)
+#                     val_batch = list(zip(*[self.getTrainer().volume[idx]
+#                                            for idx in val_idx[:16]]))
+#                     val_batch = [np.stack(batch) for batch in val_batch]
+#                     val_batch[1] = val_batch[1] > 0
+#                     loss, accuracy, _ = self.evaluate([torch.from_numpy(batch.astype(np.float)) for batch in val_batch])
+#                     print("Iteration: {}".format(num_iter),
+#                           "Epoch {}/{} ".format(num_epoch,
+#                                                 self.getTrainer().max_epochs),
+#                           "Loss: {:.4f}".format(loss),
+#                           "Accuracy: {:.2f}".format(accuracy*100))
+#                     self.getTrainer().volume.getVolume().setAugmentation(True)
 
-                num_iter += 1
+#                 num_iter += 1
 
-            num_epoch += 1
+#             num_epoch += 1
 
 
 class TFTrainer(object):
@@ -233,7 +233,10 @@ class TFTrainer(object):
             self.gpu_device = gpu_device
             self.useGpu = True
 
-        self.volume = TorchVolume(aligned_volume)
+        self.volume = aligned_volume
+
+    def getTrainer(self):
+        return self
 
     def run_epoch(self, sample_batch):
         """
@@ -243,32 +246,37 @@ class TFTrainer(object):
 "input" and "label", respectively
         """
         with tf.GradientTape() as tape:
-            inputs = tf.convert_to_tensor(sample_batch[0],
+            inputs = tf.convert_to_tensor(np.expand_dims(sample_batch[0],
+                                                         axis=1),
                                           dtype=tf.float32)
-            labels = tf.convert_to_tensor(sample_batch[1],
+            labels = tf.convert_to_tensor(np.expand_dims(sample_batch[1],
+                                                         axis=1),
                                           dtype=tf.float32)
 
-            outputs = self.net(inputs)
+            with tf.device('/device:GPU:0'):
+                outputs = self.net(inputs)
 
             loss = self.criterion(labels, outputs)
 
         variables = self.net.variables
-        gradients = tape(loss, self.net.variables)
+        gradients = tape.gradient(loss, self.net.variables)
         self.optimizer.apply_gradients(zip(gradients, variables))
 
         return loss
 
     def evaluate(self, batch):
-        inputs = tf.convert_to_tensor(batch[0],
-                                      dtype=tf.float32)
-        labels = tf.convert_to_tensor(batch[1],
-                                      dtype=tf.float32)
+        inputs = tf.convert_to_tensor(np.expand_dims(batch[0],
+                                                        axis=1),
+                                        dtype=tf.float32)
+        labels = tf.convert_to_tensor(np.expand_dims(batch[1],
+                                                        axis=1),
+                                        dtype=tf.float32)
 
         outputs = self.net(inputs)
 
         loss = self.criterion(labels, outputs)
-        accuracy = tf.sum((outputs > 0) & (labels > 0))
-        accuracy /= tf.sum((outputs > 0) | (labels > 0))
+        accuracy = tf.math.reduce_sum(tf.cast((outputs > 0) & (labels > 0), tf.int32))
+        accuracy /= tf.math.reduce_sum(tf.cast((outputs > 0) | (labels > 0), tf.int32))
 
         return loss, accuracy, tf.stack(outputs)
 
@@ -280,6 +288,7 @@ class TFTrainer(object):
         num_iter = 1
 
         validation_split = 0.2
+        print(self.getTrainer().volume)
         valid_indexes = self.getTrainer().volume.getValidData()
         random_idx = np.random.permutation(valid_indexes)
         train_idx = random_idx[:int(len(valid_indexes)*(1-validation_split))].copy()
@@ -288,12 +297,15 @@ class TFTrainer(object):
         train_idx = train_idx[:(len(train_idx) - len(train_idx) % 16)]
         train_idx = train_idx.reshape((-1, 16))
 
+        val_idx = val_idx[:(len(val_idx) - len(val_idx) % 16)]
+        val_idx = val_idx.reshape((-1, 16))
+
         while num_epoch <= self.getTrainer().max_epochs:
             np.random.shuffle(train_idx)
             for i in range(train_idx.shape[0]):
                 sample_batch = list(zip(*[self.getTrainer().volume[idx]
                                           for idx in train_idx[i]]))
-                sample_batch = [np.stack(batch) for batch in sample_batch]
+                sample_batch = [np.stack([x.getArray() for x in batch]) for batch in sample_batch]
                 sample_batch[1] = sample_batch[1] > 0
                 if num_epoch > self.getTrainer().max_epochs:
                     break
@@ -305,8 +317,8 @@ class TFTrainer(object):
 
                 if num_iter % 10 == 0:
                     val_batch = list(zip(*[self.getTrainer().volume[idx]
-                                           for idx in val_idx[:1]]))
-                    val_batch = [np.stack(batch) for batch in val_batch]
+                                           for idx in val_idx[1]]))
+                    val_batch = [np.stack([x.getArray() for x in batch]) for batch in val_batch]
                     val_batch[1] = val_batch[1] > 0
                     loss, accuracy, _ = self.evaluate(val_batch)
                     print("Iteration: {}".format(num_iter),
@@ -320,7 +332,7 @@ class TFTrainer(object):
             num_epoch += 1
 
 
-class TFTrainerDecorator(Trainer):
+class TrainerDecorator(TFTrainer):
     """
     A wrapper class to a features for training
     """
@@ -331,7 +343,7 @@ class TFTrainerDecorator(Trainer):
         self._trainer = trainer
 
     def getTrainer(self):
-        if isinstance(self._trainer, TFTrainerDecorator) or issubclass(type(self._trainer), TFTrainerDecorator):
+        if isinstance(self._trainer, TrainerDecorator) or issubclass(type(self._trainer), TrainerDecorator):
             return self._trainer.getTrainer()
         if isinstance(self._trainer, TFTrainer):
             return self._trainer
@@ -350,6 +362,7 @@ class TFTrainerDecorator(Trainer):
         num_iter = 1
 
         validation_split = 0.2
+        print(self.getTrainer().volume)
         valid_indexes = self.getTrainer().volume.getValidData()
         random_idx = np.random.permutation(valid_indexes)
         train_idx = random_idx[:int(len(valid_indexes)*(1-validation_split))].copy()
@@ -358,12 +371,15 @@ class TFTrainerDecorator(Trainer):
         train_idx = train_idx[:(len(train_idx) - len(train_idx) % 16)]
         train_idx = train_idx.reshape((-1, 16))
 
+        val_idx = val_idx[:(len(val_idx) - len(val_idx) % 16)]
+        val_idx = val_idx.reshape((-1, 16))
+
         while num_epoch <= self.getTrainer().max_epochs:
             np.random.shuffle(train_idx)
             for i in range(train_idx.shape[0]):
                 sample_batch = list(zip(*[self.getTrainer().volume[idx]
                                           for idx in train_idx[i]]))
-                sample_batch = [np.stack(batch) for batch in sample_batch]
+                sample_batch = [np.stack([x.getArray() for x in batch]) for batch in sample_batch]
                 sample_batch[1] = sample_batch[1] > 0
                 if num_epoch > self.getTrainer().max_epochs:
                     break
@@ -377,6 +393,7 @@ class TFTrainerDecorator(Trainer):
                     val_batch = list(zip(*[self.getTrainer().volume[idx]
                                            for idx in val_idx[:1]]))
                     val_batch = [np.stack(batch) for batch in val_batch]
+                    print(val_batch[0])
                     val_batch[1] = val_batch[1] > 0
                     loss, accuracy, _ = self.evaluate(val_batch)
                     print("Iteration: {}".format(num_iter),
