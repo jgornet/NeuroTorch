@@ -40,7 +40,7 @@ class LossWriter(TrainerDecorator):
         :param iteration: The current iteration of the model
         """
         self.train_writer.add_scalar("Time", duration, iteration)
-        self.train_writer.add_scalar("Loss", loss, iteration)
+        self.train_writer.add_scalar("Loss", loss.numpy(), iteration)
 
     def evaluate(self, batch):
         start = time.time()
@@ -50,8 +50,8 @@ class LossWriter(TrainerDecorator):
         duration = end - start
 
         self.validation_writer.add_scalar("Time", duration, self.iteration)
-        self.validation_writer.add_scalar("Loss", loss, self.iteration)
-        self.validation_writer.add_scalar("Accuracy", accuracy*100, self.iteration)
+        self.validation_writer.add_scalar("Loss", loss.numpy(), self.iteration)
+        self.validation_writer.add_scalar("Accuracy", accuracy.numpy()*100, self.iteration)
 
         return loss, accuracy, output
 
@@ -137,6 +137,7 @@ class TrainingLogger(TrainerDecorator):
 
         return loss
 
+
 class ImageWriter(TrainerDecorator):
     """
     Write the image of each validation to a Tensorboard log
@@ -162,16 +163,19 @@ class ImageWriter(TrainerDecorator):
 
     def evaluate(self, batch):
         loss, accuracy, output = super().evaluate(batch)
-        inputs = np.amax(batch[0].cpu().numpy(), axis=2).astype(np.float)
+        inputs = np.amax(batch[0], axis=1).astype(np.float)
         inputs = (inputs + 200.0) * 0.50 / (np.max(inputs) - np.min(inputs))
-        inputs = np.concatenate(list(inputs), axis=2)
-        labels = np.amax(batch[1].cpu().numpy(), axis=2).astype(np.float) * 0.9
-        labels = np.concatenate(list(labels), axis=2)
-        prediction = np.amax(1/(1 + np.exp(-output[0])), axis=2)
+        inputs = np.concatenate(list(inputs), axis=1)
+        inputs = np.expand_dims(inputs, axis=0)
+        labels = np.amax(batch[1], axis=1).astype(np.float) * 0.9
+        labels = np.concatenate(list(labels), axis=1)
+        labels = np.expand_dims(labels, axis=0)
+        prediction = np.amax(1/(1 + np.exp(-output.numpy())), axis=2)
         prediction = np.concatenate(list(prediction), axis=2)
         self.image_writer.add_image("input_image", inputs, self.iteration)
         self.image_writer.add_image("label_image", labels, self.iteration)
-        self.image_writer.add_image("prediction_image", prediction, self.iteration)
+        self.image_writer.add_image("prediction_image", prediction,
+                                    self.iteration)
 
         return loss, accuracy, output
 
