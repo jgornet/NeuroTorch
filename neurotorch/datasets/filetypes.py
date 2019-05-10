@@ -11,8 +11,8 @@ import tifffile as tif
 class TiffVolume(Volume):
     def __init__(self, tiff_file, bounding_box: BoundingBox,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 32)),
-                 stride: Vector=Vector(64, 64, 16)):
+                                                         Vector(32, 32, 8)),
+                 stride: Vector=Vector(16, 16, 4)):
         """
         Loads a TIFF stack file or a directory of TIFF files and creates a
 corresponding three-dimensional volume dataset

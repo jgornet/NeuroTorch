@@ -1,4 +1,4 @@
-from torch.utils.data import Dataset as _Dataset
+# from torch.utils.data import Dataset as _Dataset
 import numpy as np
 from abc import abstractmethod
 from neurotorch.datasets.datatypes import BoundingBox, Vector
@@ -182,6 +182,10 @@ given data.
         x1, y1, z1 = edge1.getComponents()
         x2, y2, z2 = edge2.getComponents()
 
+        intersection = data_bounding_box.intersect(self.getBoundingBox())
+        intersection -= data_edge1
+        
+
         self.array[z1:z2, y1:y2, x1:x2] = data_array
 
     def blend(self, data: Data):
@@ -324,33 +328,6 @@ origin
 
     def __exit__(self):
         pass
-
-
-class TorchVolume(_Dataset):
-    def __init__(self, volume):
-        self.setVolume(volume)
-        super().__init__()
-
-    def __len__(self):
-        return len(self.getVolume())
-
-    def __getitem__(self, idx):
-        if isinstance(self.getVolume(), AlignedVolume):
-            data_list = [self.toTorch(data) for data in self.getVolume()[idx]]
-            return data_list
-        else:
-            return self.getVolume()[idx].getArray()
-
-    def toTorch(self, data):
-        torch_data = data.getArray().astype(np.float)
-        torch_data = torch_data.reshape(1, *torch_data.shape)
-        return torch_data
-
-    def setVolume(self, volume):
-        self.volume = volume
-
-    def getVolume(self):
-        return self.volume
 
 
 class Volume:
