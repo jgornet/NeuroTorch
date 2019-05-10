@@ -1,5 +1,5 @@
 from neurotorch.core.trainer import TrainerDecorator
-import torch
+import tensorflow as tf
 import os.path
 
 
@@ -22,10 +22,11 @@ class CheckpointWriter(TrainerDecorator):
 
         self.checkpoint_dir = checkpoint_dir
         self.checkpoint_period = checkpoint_period
+        self.checkpoint = tf.train.Checkpoint(net=self.getTrainer().net,
+                                              optimizer=self.getTrainer().optimizer)
         self.max_accuracy = 0
 
         self.iteration = 1
-        print(self.getTrainer())
 
     def run_epoch(self, sample_batch):
         """
@@ -57,4 +58,4 @@ class CheckpointWriter(TrainerDecorator):
         """
         checkpoint_filename = os.path.join(self.checkpoint_dir,
                                            checkpoint_name)
-        torch.save(self.getTrainer().net.state_dict(), checkpoint_filename)
+        self.checkpoint.save(checkpoint_filename)
