@@ -25,10 +25,10 @@ residual = True
 bn = True
 
 # Number of feature maps
-nfeatures = [28, 36, 48, 64, 80, 96]
+nfeatures = [16, 16, 64, 128, 80, 96]
 
 # Filter size
-sizes = [(1, 3, 3),
+sizes = [(3, 3, 3),
          (3, 3, 3),
          (3, 3, 3),
          (3, 3, 3),
@@ -36,7 +36,7 @@ sizes = [(1, 3, 3),
          (3, 3, 3)]
 
 # In/out filter & stride size
-io_size = (1, 5, 5)
+io_size = (3, 3, 3)
 io_stride = (1, 1, 1)
 
 
@@ -45,7 +45,7 @@ class ConvMod(nn.Module):
 
     def __init__(self, D_in, D_out, ks, activation=F.elu,
                  fact=factorize, resid=residual,
-                 bn=True, momentum=0.001):
+                 bn=bn, momentum=0.5):
 
         nn.Module.__init__(self)
         st = (1, 1, 1)
@@ -95,9 +95,9 @@ class ConvMod(nn.Module):
 class ConvTMod(nn.Module):
     """ Transposed Convolution "module" """
 
-    def __init__(self, D_in, D_out, ks, up=(1, 2, 2), activation=F.elu,
+    def __init__(self, D_in, D_out, ks, up=(2, 2, 2), activation=F.elu,
                  fact=factorize, resid=residual,
-                 bn=True, momentum=0.001):
+                 bn=bn, momentum=0.5):
 
         nn.Module.__init__(self)
 
@@ -166,7 +166,7 @@ class RSUNet(nn.Module):
 
     def __init__(self, D_in=1, output_spec=OrderedDict(soma_label=1),
                  depth=4, io_size=io_size,
-                 io_stride=io_stride, bn=True):
+                 io_stride=io_stride, bn=bn):
 
         nn.Module.__init__(self)
 
@@ -218,12 +218,12 @@ class RSUNet(nn.Module):
         setattr(self, "convmod{}".format(depth),
                 ConvMod(D_in, D_out, ks, bn=bn))
 
-    def add_max_pool(self, depth, D_in, down=(1, 2, 2)):
+    def add_max_pool(self, depth, D_in, down=(2, 2, 2)):
 
         setattr(self, "maxpool{}".format(depth),
                 nn.MaxPool3d(down))
 
-    def add_deconv_mod(self, depth, D_in, D_out, bn, up=(1, 2, 2)):
+    def add_deconv_mod(self, depth, D_in, D_out, bn, up=(2, 2, 2)):
 
         setattr(self, "deconv{}".format(depth),
                 ConvTMod(D_in, D_out, up, bn=bn))

@@ -106,8 +106,8 @@ class Array:
     """
     def __init__(self, array: np.ndarray, bounding_box: BoundingBox=None,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 20)),
-                 stride: Vector=Vector(64, 64, 10)):
+                                                         Vector(128, 128, 32)),
+                 stride: Vector=Vector(64, 64, 16)):
         """
         Initializes a volume with a bounding box and iteration parameters
 
@@ -150,12 +150,12 @@ not exist, then the method raises a ValueError.
         array = self.getArray(sub_bounding_box)
 
         before_pad = bounding_box.getEdges()[0] - sub_bounding_box.getEdges()[0]
-        after_pad = sub_bounding_box.getEdges()[1] - bounding_box.getEdges()[1]
+        after_pad = bounding_box.getEdges()[1] - sub_bounding_box.getEdges()[1]
 
-        if before_pad != Vector(0, 0, 0) and after_pad != Vector(0, 0, 0):
-            pad_size = (before_pad.getComponents(),
-                        after_pad.getComponents())
-            array = np.pad(array, pad_size=pad_size, mode="constant")
+        if before_pad != Vector(0, 0, 0) or after_pad != Vector(0, 0, 0):
+            pad_size = tuple(zip(before_pad.getNumpyDim(),
+                                 after_pad.getNumpyDim()))
+            array = np.pad(array, pad_width=pad_size, mode="constant")
 
         return Data(array, bounding_box)
 
@@ -301,6 +301,12 @@ origin
         return self.element_vec[0]*self.element_vec[1]*self.element_vec[2]
 
     def __getitem__(self, idx):
+        bounding_box = self._indexToBoundingBox(idx)
+        result = self.get(bounding_box)
+
+        return result
+
+    def _indexToBoundingBox(self, idx):
         if idx >= len(self):
             self.index = 0
             raise StopIteration
@@ -310,9 +316,8 @@ origin
 
         element_vec = Vector(*element_vec)
         bounding_box = self.iteration_size+self.stride*element_vec
-        result = self.get(bounding_box)
 
-        return result
+        return bounding_box
 
     def __enter__(self):
         pass
@@ -354,10 +359,11 @@ class Volume:
     """
     def __init__(self, bounding_box: BoundingBox=None,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 20)),
-                 stride: Vector=Vector(64, 64, 10)):
+                                                         Vector(128, 128, 32)),
+                 stride: Vector=Vector(64, 64, 16)):
         self.setBoundingBox(bounding_box)
         self.setIteration(iteration_size, stride)
+        self.valid_data = None
 
     def setArray(self, array: Array):
         self.array = array
@@ -508,8 +514,17 @@ given data.
         else:
             raise StopIteration
 
+    def getValidData(self):
+        if self.valid_data is not None:
+            self.valid_data = []
+            for i in range(len(self)):
+                if not (self[i].getArray() == 0).all():
+                    self.valid_data.append(i)
 
-class AlignedVolume(Array):
+        return self.valid_data
+
+
+class AlignedVolume(Volume):
     def __init__(self, volumes, iteration_size=None, stride=None):
         if iteration_size is None:
             iteration_size = volumes[0].getIterationSize()
@@ -517,6 +532,7 @@ class AlignedVolume(Array):
             stride = volumes[0].getStride()
         self.setVolumes(volumes)
         self.setIteration(iteration_size, stride)
+        self.valid_data = None
 
     def getBoundingBox(self):
         return self.getVolumes()[0].getBoundingBox()
@@ -549,12 +565,26 @@ class AlignedVolume(Array):
         result = [volume[idx] for volume in self.getVolumes()]
         return result
 
+    def getValidData(self):
+        if self.valid_data is None:
+            self.valid_data = []
+            for i in range(len(self)):
+                if not (self.getVolumes()[1][i].getArray() == 0).all():
+                    self.valid_data.append(i)
+
+        return self.valid_data
+
+    def _indexToBoundingBox(self, idx):
+        bounding_box = self.getVolumes()[0]._indexToBoundingBox(idx)
+
+        return bounding_box
+
 
 class PooledVolume(Volume):
     def __init__(self, volumes=None, stack_size: int=5,
                  iteration_size: BoundingBox=BoundingBox(Vector(0, 0, 0),
-                                                         Vector(128, 128, 20)),
-                 stride: Vector=Vector(64, 64, 10)):
+                                                         Vector(128, 128, 32)),
+                 stride: Vector=Vector(64, 64, 16)):
         if volumes is not None:
             self.volumes = volumes
             self.volumes_changed = True
@@ -567,7 +597,9 @@ class PooledVolume(Volume):
 
         self.setIteration(iteration_size, stride)
 
-    def setStack(self, stack_size: int=5):
+        self.valid_data = None
+
+    def setStack(self, stack_size: int=15):
         self.stack = []
         self.stack_size = stack_size
 
@@ -620,26 +652,23 @@ class PooledVolume(Volume):
 
         for volume in stack_volumes:
             sub_bbox = bounding_box.intersect(volume.getBoundingBox())
-            data.append(volume.request(sub_bbox))
+            data.append(volume.get(sub_bbox))
 
         for index in stack_disjoint:
             volume = self.volumes[index]
             i = self._pushStack(index, volume)
 
             sub_bbox = bounding_box.intersect(volume.getBoundingBox())
-            data.append(volume.request(sub_bbox))
+            data.append(volume.get(sub_bbox))
 
-        if len(data) > 1:
-            shape = bounding_box.getNumpyDim()
-            array = Array(np.zeros(shape).astype(np.uint16),
-                          bounding_box=bounding_box,
-                          iteration_size=BoundingBox(Vector(0, 0, 0),
-                                                     bounding_box.getSize()),
-                          stride=bounding_box.getSize())
-            [array.set(item) for item in data]
-            return Data(array.getArray(), bounding_box)
-        else:
-            return data[0]
+        shape = bounding_box.getNumpyDim()
+        array = Array(np.zeros(shape).astype(np.uint16),
+                        bounding_box=bounding_box,
+                        iteration_size=BoundingBox(Vector(0, 0, 0),
+                                                    bounding_box.getSize()),
+                        stride=bounding_box.getSize())
+        [array.set(item) for item in data]
+        return Data(array.getArray(), bounding_box)
 
     def set(self, data: Data):
         indexes = self._queryBoundingBox(data.getBoundingBox())
@@ -669,6 +698,12 @@ class PooledVolume(Volume):
         return self.length
 
     def __getitem__(self, idx: int) -> Data:
+        bounding_box = self._indexToBoundingBox(idx)
+        result = self.get(bounding_box)
+
+        return result
+
+    def _indexToBoundingBox(self, idx: int) -> BoundingBox:
         if self.volumes_changed:
             len(self)
 
@@ -687,9 +722,8 @@ class PooledVolume(Volume):
         element_vec = Vector(*element_vec)
         bounding_box = volume.iteration_size+volume.stride*element_vec \
                        + volume.getBoundingBox().getEdges()[0]
-        result = self.get(bounding_box)
 
-        return result
+        return bounding_box
 
     def setIteration(self, iteration_size: BoundingBox, stride: Vector):
         for volume in self.volume_list:
@@ -697,3 +731,12 @@ class PooledVolume(Volume):
 
         self.setIterationSize(iteration_size)
         self.setStride(stride)
+
+    def getValidData(self):
+        if self.valid_data is None:
+            self.valid_data = []
+            for i in range(len(self)):
+                if not (self[i].getArray() == 0).all():
+                    self.valid_data.append(i)
+
+        return self.valid_data

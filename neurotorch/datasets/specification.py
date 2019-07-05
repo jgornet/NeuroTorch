@@ -48,7 +48,7 @@ class Spec(ABC):
             error_string = "given volume_spec is corrupt"
             raise ValueError(error_string)
 
-    def create(self, spec, stack_size=5):
+    def create(self, spec, stack_size=33):
         """
         Creates a pooled volume from a volume dataset specification
 
