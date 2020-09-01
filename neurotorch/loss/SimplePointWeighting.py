@@ -10,15 +10,16 @@ class SimplePointBCEWithLogitsLoss(Module):
     """
     def __init__(self):
         super().__init__()
-        self.bce = BCEWithLogitsLoss()
+        self.bce = BCEWithLogitsLoss(reduction='none')
 
     def forward(self, prediction, label):
-        weighted_prediction = self.simple_weight(prediction)
-        weighted_label = self.simple_weight(label)
+        prediction_weights = self.simple_weight(prediction)
+        label_weights = self.simple_weight(label)
 
-        cost = self.bce(weighted_prediction, weighted_label)
+        cost = self.bce(prediction, label)
+        cost = cost[(prediction_weights + label_weights) > 0]
 
-        return cost
+        return cost.mean()
 
     def simple_weight(self, tensor, simple_weight=1, non_simple_weight=10):
         non_simple_points = self.label_nonsimple_points(tensor)
@@ -26,10 +27,9 @@ class SimplePointBCEWithLogitsLoss(Module):
                         non_simple_points
         inputs_weights = non_simple_weight * non_simple_points + \
                          simple_weight * simple_points
-        result = inputs_weights * tensor
-        return result
+        return inputs_weights
 
-    def label_nonsimple_points(self, tensor, threshold=0.5):
+    def label_nonsimple_points(self, tensor, threshold=0):
         """
         Labels every non-simple point in a tensor
 
@@ -57,7 +57,7 @@ class SimplePointBCEWithLogitsLoss(Module):
                                                              i:i+3]):
                         result[k, j, i] = 1
 
-        result = torch.from_numpy(result.astype(np.float32)).to(device)
+        result = torch.from_numpy(result).to(device).type(type(tensor))
 
         return result
 
