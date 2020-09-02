@@ -20,16 +20,18 @@ class SimplePointBCEWithLogitsLoss(Module):
         non_simple_weight = self.non_simple_weight
 
         prediction_weights = self.simple_weight(
-            prediction, simple_weight=simple_weight,
-            non_simple_weight=non_simple_weight,
+            prediction, simple_weight=0, non_simple_weight=1,
         )
         label_weights = self.simple_weight(
-            label, simple_weight=simple_weight,
-            non_simple_weight=non_simple_weight,
+            label, simple_weight=0, non_simple_weight=1,
         )
 
+        weight = (prediction_weights + label_weights) > 0
+        weight = (weight.float() * non_simple_weight) + \
+            ((~weight).float() * simple_weight)
+
         cost = self.bce(prediction, label)
-        cost = cost * (prediction_weights + label_weights) * 0.5
+        cost = weight * cost
 
         return cost.mean()
 
