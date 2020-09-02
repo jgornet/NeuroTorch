@@ -8,25 +8,37 @@ class SimplePointBCEWithLogitsLoss(Module):
     """
     Weights the binomial cross-entropy loss by the non-simple points
     """
-    def __init__(self):
+
+    def __init__(self, simple_weight=1, non_simple_weight=1):
         super().__init__()
+        self.simple_weight = simple_weight
+        self.non_simple_weight = non_simple_weight
         self.bce = BCEWithLogitsLoss(reduction='none')
 
     def forward(self, prediction, label):
-        prediction_weights = self.simple_weight(prediction)
-        label_weights = self.simple_weight(label)
+        simple_weight = self.simple_weight
+        non_simple_weight = self.non_simple_weight
+
+        prediction_weights = self.simple_weight(
+            prediction, simple_weight=simple_weight,
+            non_simple_weight=non_simple_weight,
+        )
+        label_weights = self.simple_weight(
+            label, simple_weight=simple_weight,
+            non_simple_weight=non_simple_weight,
+        )
 
         cost = self.bce(prediction, label)
-        cost = cost[(prediction_weights + label_weights) > 0]
+        cost = cost * (prediction_weights + label_weights) * 0.5
 
         return cost.mean()
 
-    def simple_weight(self, tensor, simple_weight=1, non_simple_weight=10):
+    def simple_weight(self, tensor, simple_weight=1, non_simple_weight=1):
         non_simple_points = self.label_nonsimple_points(tensor)
         simple_points = tensor.new_ones(tensor.size()).to(tensor.get_device()) - \
-                        non_simple_points
+            non_simple_points
         inputs_weights = non_simple_weight * non_simple_points + \
-                         simple_weight * simple_points
+            simple_weight * simple_points
         return inputs_weights
 
     def label_nonsimple_points(self, tensor, threshold=0):
